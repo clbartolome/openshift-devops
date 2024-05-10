@@ -1,0 +1,54 @@
+---
+- name: ({{ operator.name }}) - namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: project.openshift.io/v1
+      kind: Project
+      metadata:
+        name: "{{ operator.namespace }}"
+
+- name: ({{ operator.name }}) - install subscription
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: "{{ operator.name }}"
+        namespace: "{{ operator.namespace }}"
+      spec:
+        channel: "{{ operator.channel }}"
+        name: "{{ operator.name }}"
+        source: "{{ operator.source }}"
+        sourceNamespace: "{{ operator.sourcenamespace }}"
+        installPlanApproval: Automatic
+        clusterwide: true
+
+- name: ({{ operator.name }}) - get ClusterServiceVersion from Subscription 
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    kind: Subscription
+    namespace: "{{ operator.namespace }}"
+    name: "{{ operator.name }}" 
+  register: subscription_info
+  until: subscription_info.resources | length > 0 and subscription_info.resources[0].status is defined and subscription_info.resources[0].status.installedCSV is defined
+  retries: 30
+  delay: 10
+
+- name: ({{ operator.name }}) - wait for the operator to be installed
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    kind: ClusterServiceVersion
+    namespace: "{{ operator.namespace }}"
+    name: "{{ subscription_info.resources[0].status.installedCSV }}"
+  register: operator_info
+  until: operator_info.resources | length > 0 and operator_info.resources[0].status.phase == "Succeeded"
+  retries: 30
+  delay: 10
+  ignore_errors: true
+
+- name: ({{ operator.name }}) - Fail if the operator installation failed
+  fail:
+    msg: "Failed to install {{ operator.name }} Operator"
+  when: operator_info is failed
