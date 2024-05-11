@@ -1,7 +1,7 @@
 # openshift-devops
 Repository with an application lifecycle overview
 
-## Installation
+## Install
 
 Configure installation playbook if needed (`installation/vars.yaml`):
 
@@ -21,8 +21,19 @@ operators:
   ...
 ```
 
-Login in an OpenShift cluster and run the installation playbook:
+Login in an OpenShift cluster and run the playbook:
 
 ```sh
-ansible-playbook installation/main.yaml
+ansible-playbook installation/install_demo.yaml
 ```
+
+## Uninstall
+
+Use same configuration as in Installation.
+
+Login in an OpenShift cluster and run the playbook:
+
+```sh
+ansible-playbook installation/uninstall_demo.yaml
+```
+

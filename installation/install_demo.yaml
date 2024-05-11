@@ -1,0 +1,55 @@
+---
+- name: Install Demo in OpenShift
+  hosts: localhost
+  
+  tasks:
+    - name: Create Demo namespaces
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: project.openshift.io/v1
+          kind: Project
+          metadata:
+            name: "{{ namespace.name }}"
+      loop: "{{ demoNamespaces }}"
+      loop_control:
+        loop_var: namespace
+
+    - name: Install Operators
+      include_role:
+        name: install_operators
+
+    - name: ArgoCD
+      include_role:
+        name: argo_cd
+
+    - name: Create demo environment on ArgoCD
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: argoproj.io/v1alpha1
+          kind: Application
+          metadata:
+            name: openshift-devops-environment
+            namespace: openshift-gitops
+            finalizers:
+              - resources-finalizer.argocd.argoproj.io
+          spec:
+            project: default
+            source:
+              repoURL: https://github.com/clbartolome/openshift-devops.git
+              targetRevision: master
+              path: environment/resources/
+              directory:
+                recurse: true
+            destination:
+              server: https://kubernetes.default.svc
+              namespace: openshift-gitops
+            syncPolicy: {}
+          
+    - name: Display message after role execution
+      debug:
+        msg: "Running tasks after role execution"
+  
+  vars_files:
+    - vars.yaml

@@ -24,12 +24,15 @@ spec:
         - /bin/sh
         - '-c'
         args:
-        # TODO: change clone repo branch to master
-        #Example: https://github.com/clbartolome/ocp-dev-101/blob/master/environment/resources/10_gitea/setup-job.yaml
         - |-
           pwd
           mkdir repository
           cd repository
+
+          echo "-- Cloning demo repository --"
+          git clone -b master https://github.com/clbartolome/openshift-devops.git  
+          echo "------------------------------"   
+
           echo "-- Creating gitea user"
           curl -X POST \
             -d '{"username":"gitea","password":"openshift","retype":"openshift","email":"gitea@gitea.com","send_notify":false}' \
@@ -85,7 +88,7 @@ spec:
           fi
 
           git clone http://gitea:openshift@$GITEA_HOSTNAME/gitea/lol-champions-app
-          cp -r ocp-dev-101/lol-champions-app/. lol-champions-app
+          cp -r openshift-devops/lol-champions-app/. lol-champions-app
           cd lol-champions-app
           git config user.email "gitea@gitea.com"
           git config user.name "gitea"
@@ -106,7 +109,7 @@ spec:
           fi
 
           git clone http://gitea:openshift@$GITEA_HOSTNAME/gitea/lol-champions-deploy
-          cp -R ocp-dev-101/lol-champions-deploy/. lol-champions-deploy
+          cp -R openshift-devops/lol-champions-deploy/. lol-champions-deploy
           cd lol-champions-deploy
           git config user.email "gitea@gitea.com"
           git config user.name "gitea"

@@ -1,0 +1,28 @@
+---
+- name: Uninstall Demo in OpenShift
+  hosts: localhost
+  
+  tasks:
+
+    - name: Remove demo environment on ArgoCD
+      kubernetes.core.k8s:
+        state: absent
+        api_version: argoproj.io/v1alpha1
+        kind: Application
+        namespace: openshift-gitops
+        name: openshift-devops-environment
+
+    - name: Delete Demo namespaces
+      kubernetes.core.k8s:
+        state: absent
+        definition:
+          apiVersion: project.openshift.io/v1
+          kind: Project
+          metadata:
+            name: "{{ namespace.name }}"
+      loop: "{{ demoNamespaces }}"
+      loop_control:
+        loop_var: namespace
+  
+  vars_files:
+    - vars.yaml
