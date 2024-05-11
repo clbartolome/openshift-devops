@@ -1,7 +1,7 @@
 ---
 demoNamespaces:
   # Exclude operators installation namespaces
-  - name: test
+  - name: gitea
 
 operators:
   - name: openshift-gitops-operator

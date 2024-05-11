@@ -1,0 +1,142 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: gitea-setup-
+  name: configure-gitea
+  namespace: gitea
+  annotations:
+    argocd.argoproj.io/sync-wave: "29"
+  labels:
+      app.kubernetes.io/part-of: gitea
+      name: configure-gitea
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      containers:
+      - name: git
+        image: quay.io/calopezb/git-utils:1.0.0
+        # TODO: Read CONFIGURATION using a configmap + ansible
+        env:
+        - name: GITEA_HOSTNAME
+          value: "gitea.gitea.svc.cluster.local:3000"
+        command:
+        - /bin/sh
+        - '-c'
+        args:
+        # TODO: change clone repo branch to master
+        #Example: https://github.com/clbartolome/ocp-dev-101/blob/master/environment/resources/10_gitea/setup-job.yaml
+        - |-
+          pwd
+          mkdir repository
+          cd repository
+          echo "-- Creating gitea user"
+          curl -X POST \
+            -d '{"username":"gitea","password":"openshift","retype":"openshift","email":"gitea@gitea.com","send_notify":false}' \
+            -H "Content-Type: application/json" \
+            http://$GITEA_HOSTNAME/user/sign_up
+
+          echo "-- Creating developer user --"
+
+          RESPONSE=$(curl -o /dev/null -s -w "%{http_code}\n" -X POST \
+            -u gitea:openshift \
+            -d '{"email":"develop@example.com","full_name": "develop","login_name": "develop","must_change_password": false,"password": "develop","restricted": true,"send_notify": false,"username": "develop"}' \
+            -H "Content-Type: application/json" \
+            http://$GITEA_HOSTNAME/api/v1/admin/users)
+
+          if [ "$RESPONSE" != "201" ]; then
+              echo "Error creating developer user, error code: $RESPONSE"
+              exit 1
+          fi
+
+          echo "-- Creating cicd-aide user as admin --"
+          RESPONSE=$(curl -o /dev/null -s -w "%{http_code}\n" -X POST \
+            -u gitea:openshift \
+            -d '{"email":"cicd-aide@example.com","full_name": "cicd-aide","login_name": "cicd-aide","must_change_password": false,"password": "cicd-aide","restricted": true,"send_notify": false,"username": "cicd-aide"}' \
+            -H "Content-Type: application/json" \
+            http://$GITEA_HOSTNAME/api/v1/admin/users)
+
+          if [ "$RESPONSE" != "201" ]; then
+              echo "Error creating cicd aide user, error code: $RESPONSE"
+              exit 1
+          fi
+
+          RESPONSE=$(curl -o /dev/null -s -w "%{http_code}\n" -X PATCH \
+            -u gitea:openshift \
+            -d '{"admin": true,"login_name": "cicd-aide"}' \
+            -H "Content-Type: application/json" \
+            http://$GITEA_HOSTNAME/api/v1/admin/users/cicd-aide)
+
+          if [ "$RESPONSE" != "200" ]; then
+              echo "Error making cicd aide admin, error code: $RESPONSE"
+              exit 1
+          fi
+                   
+          echo "-- Creating lol-champions-app repository --"
+          RESPONSE=$(curl -o /dev/null -s -w "%{http_code}\n" -X POST \
+            -u gitea:openshift \
+            -d '{"auto_init": true,"default_branch": "master","gitignores": "VisualStudioCode","name": "lol-champions-app","private": false,"trust_model": "default"}' \
+            -H "Content-Type: application/json" \
+            http://$GITEA_HOSTNAME/api/v1/user/repos)
+
+          if [ "$RESPONSE" != "201" ]; then
+              echo "Error creating repository, error code: $RESPONSE"
+              exit 1
+          fi
+
+          git clone http://gitea:openshift@$GITEA_HOSTNAME/gitea/lol-champions-app
+          cp -r ocp-dev-101/lol-champions-app/. lol-champions-app
+          cd lol-champions-app
+          git config user.email "gitea@gitea.com"
+          git config user.name "gitea"
+          git add . && git commit -m "Repository cloned from demo source" && git push
+          cd ..
+          echo "------------------------------"   
+
+          echo "-- Creating lol-champions-deploy repository --"
+          RESPONSE=$(curl -o /dev/null -s -w "%{http_code}\n" -X POST \
+            -u gitea:openshift \
+            -d '{"auto_init": true,"default_branch": "master","gitignores": "VisualStudioCode","name": "lol-champions-deploy","private": false,"trust_model": "default"}' \
+            -H "Content-Type: application/json" \
+            http://$GITEA_HOSTNAME/api/v1/user/repos)
+
+          if [ "$RESPONSE" != "201" ]; then
+              echo "Error creating repository, error code: $RESPONSE"
+              exit 1
+          fi
+
+          git clone http://gitea:openshift@$GITEA_HOSTNAME/gitea/lol-champions-deploy
+          cp -R ocp-dev-101/lol-champions-deploy/. lol-champions-deploy
+          cd lol-champions-deploy
+          git config user.email "gitea@gitea.com"
+          git config user.name "gitea"
+          git add . && git commit -m "Repository cloned from demo source" && git push
+          cd ..
+          echo "------------------------------"
+
+          echo "-- Making developer user collaborator on application repository --"
+          RESPONSE=$(curl -o /dev/null -s -w "%{http_code}\n" -X PUT \
+            -u gitea:openshift \
+            -d '{"permission": "write"}' \
+            -H "Content-Type: application/json" \
+            http://$GITEA_HOSTNAME/api/v1/repos/gitea/lol-champions-app/collaborators/develop)
+
+          if [ "$RESPONSE" != "204" ]; then
+              echo "Error making colaborator, error code: $RESPONSE"
+              exit 1
+          fi
+
+          echo "-- Protecting master branch in application repository --"
+          RESPONSE=$(curl -o /dev/null -s -w "%{http_code}\n" -X POST \
+            -u gitea:openshift \
+            -d '{"branch_name": "master","dismiss_stale_approvals": true, "enable_push": false, "enable_status_check": true,"status_check_contexts": [ "collection-pr-validation"]}' \
+            -H "Content-Type: application/json" \
+            http://$GITEA_HOSTNAME/api/v1/repos/gitea/lol-champions-app/branch_protections)
+
+          if [ "$RESPONSE" != "201" ]; then
+              echo "Error protecting master branch, error code: $RESPONSE"
+              exit 1
+          fi
+          
+        imagePullPolicy: Always
+      restartPolicy: Never

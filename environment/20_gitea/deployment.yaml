@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea
+  namespace: gitea
+  annotations:
+    app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"gitea-postgresql"}]'
+    argocd.argoproj.io/sync-wave: "25"
+  labels:
+    app: gitea
+    app.kubernetes.io/component: gitea
+    app.kubernetes.io/instance: gitea
+    app.kubernetes.io/name: gitea
+    app.kubernetes.io/part-of: gitea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitea
+      name: gitea
+  template:
+    metadata:
+      labels:
+        app: gitea
+        name: gitea
+    spec:
+      containers:
+      - name: gitea
+        imagePullPolicy: Always
+        image: quay.io/gpte-devops-automation/gitea:1.20
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /gitea-repositories
+          name: gitea-repositories
+        - mountPath: /home/gitea/conf
+          name: gitea-config
+        readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 1
+        livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+      serviceAccountName: gitea
+      volumes:
+      - name: gitea-repositories
+        persistentVolumeClaim:
+          claimName: gitea-repositories
+      - configMap:
+          items:
+          - key: app.ini
+            path: app.ini
+          name: gitea-config
+        name: gitea-config

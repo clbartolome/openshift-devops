@@ -1,0 +1,20 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    description: Route for application's http service.
+    argocd.argoproj.io/sync-wave: "21"
+  labels:
+    app: gitea
+  name: gitea
+  namespace: gitea
+spec:
+  to:
+    kind: Service
+    name: gitea
+    weight: 100
+  port:
+    targetPort: 3000-tcp
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

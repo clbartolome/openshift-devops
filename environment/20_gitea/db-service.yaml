@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    description: Exposes the database server
+    argocd.argoproj.io/sync-wave: "21"
+  name: gitea-postgresql
+  namespace: gitea
+spec:
+  ports:
+  - name: postgresql
+    port: 5432
+    targetPort: 5432
+  selector:
+    name: gitea-postgresql

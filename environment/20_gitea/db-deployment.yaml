@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea-postgresql
+  namespace: gitea
+  annotations:
+    argocd.argoproj.io/sync-wave: "22"
+  labels:
+    app: gitea
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: gitea
+    app.kubernetes.io/name: gitea-postgresql
+    app.kubernetes.io/part-of: gitea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitea
+      name: gitea-postgresql
+  template:
+    metadata:
+      labels:
+        app: gitea
+        name: gitea-postgresql
+    spec:
+      containers:
+      - name: postgresql
+        imagePullPolicy: IfNotPresent
+        image: image-registry.openshift-image-registry.svc:5000/openshift/postgresql:10-el8
+        env:
+        - name: POSTGRESQL_USER
+          value: gitea
+        - name: POSTGRESQL_PASSWORD
+          value: gitea
+        - name: POSTGRESQL_DATABASE
+          value: gitea
+        - name: POSTGRESQL_MAX_CONNECTIONS
+          value: "100"
+        - name: POSTGRESQL_SHARED_BUFFERS
+          value: 12MB
+        - name: POSTGRESQL_ADMIN_PASSWORD
+          value: gitea
+        ports:
+        - containerPort: 5432
+        livenessProbe:
+          initialDelaySeconds: 30
+          tcpSocket:
+            port: 5432
+          timeoutSeconds: 1
+          failureThreshold: 10
+          periodSeconds: 20
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -i
+            - -c
+            - psql -h 127.0.0.1 -U ${POSTGRESQL_USER} -q -d ${POSTGRESQL_DATABASE} -c 'SELECT 1'
+        resources:
+          limits:
+            memory: 512Mi
+        volumeMounts:
+        - mountPath: /var/lib/pgsql/data
+          name: gitea-postgres-data
+      volumes:
+      - name: gitea-postgres-data
+        persistentVolumeClaim:
+          claimName: gitea-postgres-data
