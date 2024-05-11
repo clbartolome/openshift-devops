@@ -1,0 +1,26 @@
+---
+# Currently using default ArgoCD instance (created by operator)
+# Just checking/waiting until argocd is healthy
+- name: Wait for ArgoCD to be running
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: openshift-devops-environment
+        namespace: openshift-gitops
+        finalizers:
+          - resources-finalizer.argocd.argoproj.io
+      spec:
+        project: default
+        source:
+          repoURL: https://github.com/clbartolome/openshift-devops.git
+          targetRevision: master
+          path: environment/resources/
+          directory:
+            recurse: true
+        destination:
+          server: https://kubernetes.default.svc
+          namespace: openshift-gitops
+        syncPolicy: {}

@@ -22,6 +22,9 @@
     - name: ArgoCD
       include_role:
         name: argo_cd
+
+    - name: Demo Environment
+      include_tasks: create_demo_environment.yaml
           
     - name: Display message after role execution
       debug:
