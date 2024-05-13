@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+- ../../base
+
+commonLabels:
+  environment: stage
+
+secretGenerator:
+- name: lol-champions-db-secured-configuration
+  envs:
+  - secured.env

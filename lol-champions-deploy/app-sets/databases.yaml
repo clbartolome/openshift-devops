@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: lol-champions-databases
+  namespace: openshift-gitops
+spec:
+  generators:
+    - git:
+        repoURL: http://gitea.gitea.svc.cluster.local:3000/gitea/lol-champions-deploy
+        revision: master
+        files:
+          - path: "databases/*.json"
+  template:
+    metadata:
+      name: '{{ app_name }}'
+    spec:
+      project: default
+      source:
+        repoURL: http://gitea.gitea.svc.cluster.local:3000/gitea/lol-champions-deploy
+        targetRevision: '{{ argo_config.branch }}'
+        path: '{{ argo_config.path }}'
+      destination:
+        server: '{{ k8s_cluster.address }}'
+        namespace: '{{ k8s_cluster.namespace }}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

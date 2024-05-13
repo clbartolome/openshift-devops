@@ -1,0 +1,15 @@
+{
+  "app_name": "lol-champions-app-stage",
+  "owner": "calopezb@redhat.com",
+  "argo_config": {
+    "branch": "master",
+    "path": "deploy/lol-champions-app/overlays/stage",
+    "prune": true,
+    "selfHeal": true
+  },
+  "k8s_cluster": {
+    "owner": "admin@redhat.com",
+    "address": "https://kubernetes.default.svc",
+    "namespace": "lol-champions-stage"
+  }
+}

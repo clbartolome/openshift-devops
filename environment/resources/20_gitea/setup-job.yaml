@@ -132,7 +132,7 @@ spec:
           echo "-- Protecting master branch in application repository --"
           RESPONSE=$(curl -o /dev/null -s -w "%{http_code}\n" -X POST \
             -u gitea:openshift \
-            -d '{"branch_name": "master","dismiss_stale_approvals": true, "enable_push": false, "enable_status_check": true,"status_check_contexts": [ "collection-pr-validation"]}' \
+            -d '{"branch_name": "master","dismiss_stale_approvals": true, "enable_push": false, "enable_status_check": false}' \
             -H "Content-Type: application/json" \
             http://$GITEA_HOSTNAME/api/v1/repos/gitea/lol-champions-app/branch_protections)
 

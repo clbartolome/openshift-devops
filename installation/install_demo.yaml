@@ -19,6 +19,44 @@
       include_role:
         name: install_operators
 
+    - name: Create lol-champions-app BuildConfig
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: build.openshift.io/v1
+          kind: BuildConfig
+          metadata:
+            name: lol-champions-app-init
+            namespace: ci-cd-workspace
+          spec:
+            failedBuildsHistoryLimit: 1
+            output:
+              to:
+                kind: ImageStreamTag
+                name: lol-champions-app:1.0.0-init
+            runPolicy: Serial
+            source:
+              contextDir: /lol-champions-app
+              git:
+                ref: master
+                uri: https:/gitea.gitea.svc.cluster.local:3000/gitea/lol-champions-app
+              type: Git
+            strategy:
+              sourceStrategy:
+                from:
+                  kind: ImageStreamTag
+                  name: java:openjdk-17-ubi8
+                  namespace: openshift
+              type: Source
+            successfulBuildsHistoryLimit: 1
+
+    - name: Build lol-champions-app init image
+      openshift.oc:
+        command: start-build
+        arguments: lol-champions-app-init
+        namespace: cicd-workspace
+        wait: yes        
+
     - name: ArgoCD
       include_role:
         name: argo_cd

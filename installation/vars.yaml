@@ -2,6 +2,10 @@
 demoNamespaces:
   # Exclude operators installation namespaces
   - name: gitea
+  - name: ci-cd-workspace
+  - name: lol-champions-dev
+  - name: lol-champions-stage
+  - name: lol-champions-prod
 
 operators:
   - name: openshift-gitops-operator

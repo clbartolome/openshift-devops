@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+commonLabels:
+  app: lol-champions-app
+  version: v1
+  app.kubernetes.io/component: lol-champions-app
+  app.kubernetes.io/instance: lol-champions-app
+  app.kubernetes.io/part-of: lol-champions
+  app.openshift.io/runtime: quarkus
+
+resources:
+- deployment.yaml
+- service.yaml
+- route.yaml
+
+images:
+- name: lol-champions-app
+  newName: quay.io/lol-champions-applications/lol-champions
+  newTag: 1.0.0
