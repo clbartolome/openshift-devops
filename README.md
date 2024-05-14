@@ -11,6 +11,11 @@ demoNamespaces:
   - name: test
   ...
 
+imagesSource:
+  # Configure if you need namespaces to pull images from an specific one
+  enabled: true
+  namespace: <namespace>
+
 operators:
   - name: <operator name>
     namespace: <operator namespace>
@@ -30,6 +35,8 @@ ansible-playbook installation/install_demo.yaml
 ## Uninstall
 
 Use same configuration as in Installation.
+
+IMPORTANT: Operators will not be uninstalled
 
 Login in an OpenShift cluster and run the playbook:
 

@@ -15,6 +15,14 @@
       loop_control:
         loop_var: namespace
 
+    - name: Give Image puller permission
+      ansible.builtin.command:
+        cmd: oc policy add-role-to-user system:image-puller system:serviceaccount:{{ namespace.name }}:default -n {{ imagesSource.namespace }}
+      loop: "{{ demoNamespaces }}"
+      loop_control:
+        loop_var: namespace
+      when: imagesSource.enabled|bool == true
+
     - name: Install Operators
       include_role:
         name: install_operators

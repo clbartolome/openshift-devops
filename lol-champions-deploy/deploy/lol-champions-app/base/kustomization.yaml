@@ -13,8 +13,3 @@ resources:
 - deployment.yaml
 - service.yaml
 - route.yaml
-
-images:
-- name: lol-champions-app
-  newName: quay.io/lol-champions-applications/lol-champions
-  newTag: 1.0.0

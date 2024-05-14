@@ -19,5 +19,5 @@ secretGenerator:
 
 images:
 - name: lol-champions-app
-  newName: ci-cd-workspace/lol-champions-app
+  newName: image-registry.openshift-image-registry.svc:5000/ci-cd-workspace/lol-champions-app
   newTag: 1.0.0-init

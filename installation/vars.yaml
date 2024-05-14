@@ -7,6 +7,11 @@ demoNamespaces:
   - name: lol-champions-stage
   - name: lol-champions-prod
 
+imagesSource:
+  # Configure if you need namespaces to pull images from an specific one
+  enabled: true
+  namespace: ci-cd-workspace
+
 operators:
   - name: openshift-gitops-operator
     namespace: openshift-gitops-operator
