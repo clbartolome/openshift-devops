@@ -1,0 +1,28 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: pipelinerun-url
+  namespace: ci-cd-workspace
+  annotations:
+    description: |
+      Gets pipelinerun url (to web console).
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  params:
+  - name: PIPELINERUN_UID
+    type: string
+  results:
+    - name: PIPELINERUN_URL
+      description: Generated url
+  steps:
+  - name: get-url
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+    script: |
+      #!/usr/bin/env bash
+
+      CONSOLE_URL=$(oc whoami --show-console)
+
+      PIPELINERUN_URL=$CONSOLE_URL/k8s/ns/ci-cd-workspace/tekton.dev~v1beta1~PipelineRun/$(params.PIPELINERUN_UID)/
+
+      echo $PIPELINERUN_URL | tee /tmp/url.txt
+      tr --delete '\n' </tmp/url.txt >$(results.PIPELINERUN_URL.path)

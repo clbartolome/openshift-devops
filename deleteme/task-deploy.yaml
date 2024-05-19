@@ -1,0 +1,66 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy
+  annotations:
+    description: |
+      Deploys an image on a specific environment (updates repo and sync ArgoCD)
+spec:
+  workspaces:
+    - name: source
+      description: The workspace where cicd repo will be modified.
+  params:
+    - name: APP_NAME
+      type: string
+    - name: PATH_CONTEXT
+      type: string
+    - name: ENV
+      description: Environment that must be updated
+      type: string
+    - name: IMAGE_REGISTRY
+      description: Image registry
+      type: string
+    - name: IMAGE
+      description: Image org/name
+      type: string
+    - name: IMAGE_VERSION
+      description: Image new version
+      type: string
+    - name: REPO
+      description: Deploy resources repository
+      type: string
+    - name: CONFIGURATION_SECRET
+      description: name of the secret that stores users and passwords for gitea and argocd
+      type: string
+  stepTemplate:
+    envFrom:
+      - secretRef:
+          name: $(params.CONFIGURATION_SECRET)
+  steps:
+    - name: change-image-version
+      image: k8s.gcr.io/kustomize/kustomize:v3.8.7
+      workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
+      script: |
+        cd deploy/$(params.APP_NAME)/overlays/$(params.ENV)
+        /app/kustomize edit set image $(params.APP_NAME)=$(params.IMAGE_REGISTRY)/$(params.IMAGE):$(params.IMAGE_VERSION)        
+
+    - name: push-image-version
+      image: registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8:v1.14.4-1
+      workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
+      script: |
+
+        git config --global user.email "tekton@redhat.com"
+        git config --global user.name "tekton"
+        git add .
+        git commit -m "Updated $(params.ENV) environment image to: $(params.IMAGE_REGISTRY)/$(params.IMAGE):$(params.IMAGE_VERSION)."  
+        
+        AUTH_REPO=$(echo $(params.REPO) | sed -E "s#http://(.*)#http://$GITEA_USER:$GITEA_PASS@\1#g")
+        
+        git push $AUTH_REPO HEAD:master
+
+    - name: sync-argo
+      image: quay.io/argoproj/argocd:latest
+      script: |
+        argocd login "$ARGOCD_SERVER" --username="$ARGOCD_USERNAME" --password="$ARGOCD_PASSWORD"  --insecure
+        argocd app sync $(params.APP_NAME)-$(params.ENV) --insecure
+        argocd app wait $(params.APP_NAME)-$(params.ENV) --health --insecure

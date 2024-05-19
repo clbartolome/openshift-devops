@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: tag-image
+  namespace: ci-cd-workspace
+spec:
+  params:
+  - name: IMAGE
+    type: string
+  - name: IMAGE_DIGEST
+    type: string
+  - name: IMAGE_NEW_TAG
+  steps:
+  - name: tag-image
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+    script: |
+      #!/usr/bin/env bash
+
+      oc tag $(params.IMAGE)@$(params.IMAGE_DIGEST) $(params.IMAGE):$(params.IMAGE_NEW_TAG)
