@@ -9,8 +9,6 @@ public class LivenessCheck implements HealthCheck {
 
     @Override
     public HealthCheckResponse call() {
-        // TODO: add ddbb health check
         return HealthCheckResponse.up("alive");
     }
-
 }

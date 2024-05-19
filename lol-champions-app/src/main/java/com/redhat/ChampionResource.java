@@ -19,7 +19,6 @@ public class ChampionResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getChampions() {
-  
       List<Champion> champions = Champion.listAll();
       if (champions.isEmpty()) {
         return Response.noContent().build();
