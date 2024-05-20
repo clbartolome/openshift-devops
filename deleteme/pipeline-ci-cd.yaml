@@ -97,6 +97,25 @@ spec:
       workspaces:
         - name: source
           workspace: workspace
+    # ------------ GENERATE VERSION ------------ #
+    - name: unit-tests
+      runAfter:
+        - get-pipelinerun-url
+        - fetch-app-repository
+        - fetch-deploy-repository
+      taskRef:
+        kind: Task
+        name: run-maven
+      params:
+        - name: PATH_CONTEXT
+          value: app-repo
+        - name: MAVEN_COMMAND
+          value: "test"
+        - name: OUTPUT
+          value: ""
+      workspaces:
+        - name: source
+          workspace: workspace
     # ------------ BUILD ------------ #
     # Created image Digest in results: IMAGE_DIGEST
     # - name: build-image
@@ -199,57 +218,57 @@ spec:
     #   workspaces:
     #     - name: source
     #       workspace: workspace
-    - name: git-release
-      runAfter:
-        - generate-version
-      taskRef:
-        kind: Task
-        name: git-release
-      params:
-        - name: APP_NAME
-          value: $(params.APP_NAME)
-        - name: PATH_CONTEXT
-          value: app-repo
-        - name: IMAGE_VERSION
-          value: "$(tasks.generate-version.results.VERSION)"
-        - name: REPO
-          value: "$(params.APP_REPO)"
-        - name: CONFIGURATION_SECRET
-          value: "$(params.CONFIGURATION_SECRET)"
-        - name: PIPELINERUN_URL
-          value: "$(tasks.get-pipelinerun-url.results.PIPELINERUN_URL)"
-      workspaces:
-        - name: source
-          workspace: workspace
-    - name: deploy-prod
-      runAfter:
-        - git-release
-      taskRef:
-        kind: Task
-        name: deploy-pr
-      params:
-        - name: APP_NAME
-          value: $(params.APP_NAME)
-        - name: PATH_CONTEXT
-          value: deploy-repo
-        - name: ENV
-          value: prod
-        - name: CONFIGURATION_SECRET
-          value: "$(params.CONFIGURATION_SECRET)"
-        - name: IMAGE
-          value: "$(params.IMAGE)"
-        - name: IMAGE_REGISTRY
-          value: "$(params.IMAGE_REGISTRY)"
-        - name: IMAGE_VERSION
-          value: "$(tasks.generate-version.results.VERSION)"
-        - name: DEPLOY_REPO
-          value: "$(params.DEPLOY_REPO)"
-        - name: APP_REPO
-          value: "$(params.APP_REPO)"
-        - name: PIPELINERUN_URL
-          value: "$(tasks.get-pipelinerun-url.results.PIPELINERUN_URL)"
-      workspaces:
-        - name: source
-          workspace: workspace
+    # - name: git-release
+    #   runAfter:
+    #     - generate-version
+    #   taskRef:
+    #     kind: Task
+    #     name: git-release
+    #   params:
+    #     - name: APP_NAME
+    #       value: $(params.APP_NAME)
+    #     - name: PATH_CONTEXT
+    #       value: app-repo
+    #     - name: IMAGE_VERSION
+    #       value: "$(tasks.generate-version.results.VERSION)"
+    #     - name: REPO
+    #       value: "$(params.APP_REPO)"
+    #     - name: CONFIGURATION_SECRET
+    #       value: "$(params.CONFIGURATION_SECRET)"
+    #     - name: PIPELINERUN_URL
+    #       value: "$(tasks.get-pipelinerun-url.results.PIPELINERUN_URL)"
+    #   workspaces:
+    #     - name: source
+    #       workspace: workspace
+    # - name: deploy-prod
+    #   runAfter:
+    #     - git-release
+    #   taskRef:
+    #     kind: Task
+    #     name: deploy-pr
+    #   params:
+    #     - name: APP_NAME
+    #       value: $(params.APP_NAME)
+    #     - name: PATH_CONTEXT
+    #       value: deploy-repo
+    #     - name: ENV
+    #       value: prod
+    #     - name: CONFIGURATION_SECRET
+    #       value: "$(params.CONFIGURATION_SECRET)"
+    #     - name: IMAGE
+    #       value: "$(params.IMAGE)"
+    #     - name: IMAGE_REGISTRY
+    #       value: "$(params.IMAGE_REGISTRY)"
+    #     - name: IMAGE_VERSION
+    #       value: "$(tasks.generate-version.results.VERSION)"
+    #     - name: DEPLOY_REPO
+    #       value: "$(params.DEPLOY_REPO)"
+    #     - name: APP_REPO
+    #       value: "$(params.APP_REPO)"
+    #     - name: PIPELINERUN_URL
+    #       value: "$(tasks.get-pipelinerun-url.results.PIPELINERUN_URL)"
+    #   workspaces:
+    #     - name: source
+    #       workspace: workspace
   workspaces:
     - name: workspace

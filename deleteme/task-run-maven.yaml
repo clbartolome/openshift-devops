@@ -1,0 +1,35 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: run-maven
+  namespace: ci-cd-workspace
+spec:
+  description: >-
+    This Task is used to run a maven command and optionally print an output file
+  workspaces:
+    - name: source
+      description: The workspace consisting of maven project.
+  params:
+    - name: PATH_CONTEXT
+      type: string
+    - name: MAVEN_COMMAND
+      type: string
+    - name: OUTPUT
+      type: string
+  steps:
+    - name: run-command
+      image: maven:3.8.1-openjdk-17-slim
+      workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
+      script: |
+        
+        /usr/bin/mvn $(params.MAVEN_COMMAND)
+    - name: print-output
+      image: maven:3.8.1-openjdk-17-slim
+      workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
+      script: |
+        
+        if [ $(params.OUTPUT)" != "" ]; then
+          cat $(params.OUTPUT)
+        else
+          echo "No output"
+        fi
