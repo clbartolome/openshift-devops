@@ -91,7 +91,7 @@
             project: default
             source:
               repoURL: https://github.com/clbartolome/openshift-devops.git
-              targetRevision: master
+              targetRevision: feature/cicd-pipeline
               path: environment/resources/
               directory:
                 recurse: true
