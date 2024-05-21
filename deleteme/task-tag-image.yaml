@@ -9,6 +9,10 @@ spec:
     type: string
   - name: IMAGE_DIGEST
     type: string
+    default: ""
+  - name: IMAGE_TAG
+    type: string
+    default: ""
   - name: IMAGE_NEW_TAG
   steps:
   - name: tag-image
@@ -16,4 +20,11 @@ spec:
     script: |
       #!/usr/bin/env bash
 
-      oc tag $(params.IMAGE)@$(params.IMAGE_DIGEST) $(params.IMAGE):$(params.IMAGE_NEW_TAG)
+      if [ -z "$(params.IMAGE_TAG)" ]; then
+        echo "Using image digest."
+        oc tag $(params.IMAGE)@$(params.IMAGE_DIGEST) $(params.IMAGE):$(params.IMAGE_NEW_TAG)
+      else
+        echo "Using image tag."
+        oc tag $(params.IMAGE):$(params.IMAGE_TAG) $(params.IMAGE):$(params.IMAGE_NEW_TAG)
+      fi
+

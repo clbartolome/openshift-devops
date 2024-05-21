@@ -14,8 +14,6 @@ spec:
       type: string
     - name: MAVEN_COMMAND
       type: string
-    - name: OUTPUT
-      type: string
   steps:
     - name: run-command
       image: maven:3.8.1-openjdk-17-slim
@@ -23,13 +21,3 @@ spec:
       script: |
         
         /usr/bin/mvn $(params.MAVEN_COMMAND)
-    - name: print-output
-      image: maven:3.8.1-openjdk-17-slim
-      workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
-      script: |
-        
-        if [ $(params.OUTPUT)" != "" ]; then
-          cat $(params.OUTPUT)
-        else
-          echo "No output"
-        fi

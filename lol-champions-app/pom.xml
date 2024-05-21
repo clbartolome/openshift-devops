@@ -16,6 +16,8 @@
     <quarkus.platform.version>3.5.3</quarkus.platform.version>
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
+    <gatling.version>3.11.2</gatling.version>
+    <gatling-maven-plugin.version>4.9.0</gatling-maven-plugin.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -73,6 +75,12 @@
       <artifactId>quarkus-jacoco</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.gatling.highcharts</groupId>
+      <artifactId>gatling-charts-highcharts</artifactId>
+      <version>${gatling.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -115,6 +123,9 @@
             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
             <maven.home>${maven.home}</maven.home>
           </systemPropertyVariables>
+          <excludes>
+            <exclude>**/*Simulation.class</exclude>
+          </excludes>
           <statelessTestsetInfoReporter  implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporterUnicode"/>
         </configuration>
       </plugin>
@@ -154,6 +165,7 @@
         <configuration>
             <configLocation>${basedir}/config/checkstyle/quarkus.xml</configLocation>
             <failOnViolation>true</failOnViolation>
+            <outputFileFormat>plain</outputFileFormat>
         </configuration>
         <executions>
             <execution>
@@ -181,6 +193,15 @@
                 </goals>
             </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>io.gatling</groupId>
+        <artifactId>gatling-maven-plugin</artifactId>
+        <version>${gatling-maven-plugin.version}</version>
+        <configuration>
+          <!-- Enterprise Cloud (https://cloud.gatling.io/) configuration reference: https://gatling.io/docs/gatling/reference/current/extensions/maven_plugin/#working-with-gatling-enterprise-cloud -->
+          <!-- Enterprise Self-Hosted configuration reference: https://gatling.io/docs/gatling/reference/current/extensions/maven_plugin/#working-with-gatling-enterprise-self-hosted -->
+        </configuration>
       </plugin>
     </plugins>
   </build>

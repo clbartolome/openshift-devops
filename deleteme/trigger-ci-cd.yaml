@@ -68,6 +68,8 @@ spec:
             value: 'http://gitea.gitea.svc.cluster.local:3000/gitea/lol-champions-deploy'
           - name: IMAGE
             value: ci-cd-workspace/lol-champions-app
+          - name: PERFORMANCE_TESTS_URL
+            value: 'http://lol-champions-app.lol-champions-stage.svc.cluster.local:8080'
       pipelineRef:
         name: ci-cd
       serviceAccountName: pipeline
