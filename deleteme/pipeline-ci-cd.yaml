@@ -182,8 +182,8 @@ spec:
         - name: VERSION
           value: $(params.BUILD_VERSION)
       taskRef:
-        kind: ClusterTask
-        name: s2i-java
+        kind: Task
+        name: s2i
       workspaces:
         - name: source
           workspace: workspace
@@ -286,8 +286,8 @@ spec:
       workspaces:
         - name: source
           workspace: workspace
-    # ------------ SPOTBUGS CHECK ------------ #
-    - name: spotbugs-check
+    # ------------ PERFORMANCE TESTS ------------ #
+    - name: performance-tests
       runAfter:
         - deploy-stage
       taskRef:
@@ -304,7 +304,7 @@ spec:
     # ------------ CREATE RELEASE ------------ #
     - name: git-release
       runAfter:
-        - deploy-stage
+        - performance-tests
       taskRef:
         kind: Task
         name: git-release
@@ -326,7 +326,7 @@ spec:
           workspace: workspace
     - name: tag-release
       runAfter:
-        - deploy-stage
+        - performance-tests
       taskRef:
         kind: Task
         name: tag-image
