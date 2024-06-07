@@ -2,11 +2,8 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: coverage
-  namespace: ci-cd-workspace
   annotations:
     argocd.argoproj.io/sync-wave: "40"
-    description: |
-      Check if coverage is as expected based on already executed jacoco report
 spec:
   workspaces:
     - name: source
