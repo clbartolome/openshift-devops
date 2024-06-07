@@ -1,0 +1,21 @@
+---
+ansible-navigator:
+  ansible:
+    inventory:
+      entries:
+      - ./inventory
+  app: run
+  editor:
+    command: vim_from_setting
+    console: false
+  execution-environment:
+    container-engine: podman
+    image: registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel9@sha256:947557b8bf4c81c38c8436d9ed29a492c9ec53c9bc64e3d40f6ce552711457f2
+    pull:
+      policy: missing
+  logging:
+    append: true
+    file: /tmp/navigator/ansible-navigator.log
+    level: debug
+  playbook-artifact:
+    enable: false

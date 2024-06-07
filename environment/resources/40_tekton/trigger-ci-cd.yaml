@@ -1,0 +1,90 @@
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: ci-cd
+  namespace: ci-cd-workspace
+  annotations:
+    argocd.argoproj.io/sync-wave: "45"
+spec:
+  triggers:
+    - name: github-listener
+      interceptors:
+        - ref:
+            name: github
+            kind: ClusterInterceptor
+            apiVersion: triggers.tekton.dev
+          params:
+            - name: eventTypes
+              value:
+                - push
+      bindings:
+        - kind: TriggerBinding
+          ref: ci-cd
+      template:
+        ref: ci-cd
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: ci-cd
+  namespace: ci-cd-workspace
+  annotations:
+    argocd.argoproj.io/sync-wave: "42"
+spec:
+  params:
+  - name: gitRepositoryUrl
+    value: $(body.repository.clone_url)
+  - name: gitRevision
+    value: $(body.after)
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: ci-cd
+  namespace: ci-cd-workspace
+  annotations:
+    argocd.argoproj.io/sync-wave: "42"
+spec:
+  params:
+  - name: gitRepositoryUrl
+  - name: gitRevision
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: "lol-champions-app-ci-cd-"
+      namespace: ci-cd-workspace
+      labels:
+        app.kubernetes.io/instance: ci-cd
+        tekton.dev/pipeline: ci-cd
+    spec:
+      params:
+          - name: APP_NAME
+            value: lol-champions-app
+          - name: APP_REPO
+            value: 'http://gitea.gitea.svc.cluster.local:3000/gitea/lol-champions-app'
+          - name: DEPLOY_REPO
+            value: 'http://gitea.gitea.svc.cluster.local:3000/gitea/lol-champions-deploy'
+          - name: IMAGE
+            value: ci-cd-workspace/lol-champions-app
+          - name: PERFORMANCE_TESTS_URL
+            value: 'http://lol-champions-app.lol-champions-stage.svc.cluster.local:8080'
+      pipelineRef:
+        name: ci-cd
+      serviceAccountName: pipeline
+      timeouts:
+        pipeline: 1h0m0s
+      workspaces:
+        - name: workspace
+          volumeClaimTemplate:
+            metadata:
+              labels:
+                tekton.dev/pipeline: ci-cd
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 1Gi
+            status: {}

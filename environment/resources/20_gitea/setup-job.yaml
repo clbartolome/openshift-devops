@@ -140,6 +140,18 @@ spec:
               echo "Error protecting master branch, error code: $RESPONSE"
               exit 1
           fi
+
+          echo "-- Create PR Hook in applications collection repository --"
+          RESPONSE=$(curl -o /dev/null -s -w "%{http_code}\n" -X POST \
+            -u gitea:openshift \
+            -d '{"active": true,"branch_filter": "master","config": {"content_type": "json","url": "http://el-ci-cd.ci-cd-workspace.svc.cluster.local:8080"},"events": ["push"],"type": "gitea"}' \
+            -H "Content-Type: application/json" \
+            http://$GITEA_HOSTNAME/api/v1/repos/gitea/lol-champions-app/hooks)
+
+          if [ "$RESPONSE" != "201" ]; then
+              echo "Error creating webhook, error code: $RESPONSE"
+              exit 1
+          fi 
           
         imagePullPolicy: Always
       restartPolicy: Never

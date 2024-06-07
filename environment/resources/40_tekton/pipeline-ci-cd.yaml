@@ -1,0 +1,373 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  generation: 1
+  labels:
+    app.kubernetes.io/instance: ci-cd
+    app.kubernetes.io/name: ci-cd
+    operator.tekton.dev/operand-name: openshift-pipelines-addons
+    pipeline.openshift.io/runtime: java
+    pipeline.openshift.io/runtime-version: openjdk-17-ubi8
+    pipeline.openshift.io/type: kubernetes
+  name: ci-cd
+  namespace: ci-cd-workspace
+  annotations:
+    argocd.argoproj.io/sync-wave: "48"
+spec:
+  params:
+    - name: APP_NAME
+      type: string
+    - name: APP_REPO
+      type: string
+    - default: master
+      name: APP_REVISION
+      type: string
+    - name: DEPLOY_REPO
+      type: string
+    - default: master
+      name: DEPLOY_REVISION
+      type: string
+    - name: IMAGE_REGISTRY
+      default: image-registry.openshift-image-registry.svc:5000    
+      type: string
+    - name: IMAGE
+      type: string
+    - default: openjdk-17-ubi8
+      name: BUILD_VERSION
+      type: string
+    - default: ci-cd-config
+      name: CONFIGURATION_SECRET
+      type: string
+    - name: PERFORMANCE_TESTS_URL
+      type: string
+  workspaces: 
+    - workspace
+  tasks:
+   # ------------ GET PIPELINERUN URL (console) ------------ #
+    - name: get-pipelinerun-url
+      params:
+        - name: PIPELINERUN_UID
+          value: $(context.pipelineRun.name)
+      taskRef:
+        kind: Task
+        name: pipelinerun-url
+    # ------------ FETCH REPOSITORIES ------------ #
+    - name: fetch-app-repository
+      params:
+        - name: url
+          value: $(params.APP_REPO)
+        - name: revision
+          value: $(params.APP_REVISION)
+        - name: subdirectory
+          value: app-repo
+        - name: deleteExisting
+          value: 'true'
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: workspace
+    - name: fetch-deploy-repository
+      params:
+        - name: url
+          value: $(params.DEPLOY_REPO)
+        - name: revision
+          value: $(params.DEPLOY_REVISION)
+        - name: subdirectory
+          value: deploy-repo
+        - name: deleteExisting
+          value: 'true'
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: workspace
+    # ------------ UNIT TESTS ------------ #
+    - name: unit-tests
+      runAfter:
+        - get-pipelinerun-url
+        - fetch-app-repository
+        - fetch-deploy-repository
+      taskRef:
+        kind: Task
+        name: run-maven
+      params:
+        - name: PATH_CONTEXT
+          value: app-repo
+        - name: MAVEN_COMMAND
+          value: "test"
+      workspaces:
+        - name: source
+          workspace: workspace
+    - name: coverage
+      runAfter:
+        - unit-tests
+      taskRef:
+        kind: Task
+        name: coverage
+      params:
+        - name: PATH_CONTEXT
+          value: app-repo
+      workspaces:
+        - name: source
+          workspace: workspace
+    # ------------ CHECK STYLE ------------ #
+    - name: checkstyle-validation
+      runAfter:
+        - get-pipelinerun-url
+        - fetch-app-repository
+        - fetch-deploy-repository
+      taskRef:
+        kind: Task
+        name: run-maven
+      params:
+        - name: PATH_CONTEXT
+          value: app-repo
+        - name: MAVEN_COMMAND
+          value: "checkstyle:check"
+      workspaces:
+        - name: source
+          workspace: workspace
+    # ------------ CODE LINTING ------------ #
+    - name: code-linting
+      runAfter:
+        - get-pipelinerun-url
+        - fetch-app-repository
+        - fetch-deploy-repository
+      taskRef:
+        kind: Task
+        name: run-maven
+      params:
+        - name: PATH_CONTEXT
+          value: app-repo
+        - name: MAVEN_COMMAND
+          value: "pmd:check"
+      workspaces:
+        - name: source
+          workspace: workspace
+    # ------------ SPOTBUGS CHECK ------------ #
+    - name: spotbugs-check
+      runAfter:
+        - get-pipelinerun-url
+        - fetch-app-repository
+        - fetch-deploy-repository
+      taskRef:
+        kind: Task
+        name: run-maven
+      params:
+        - name: PATH_CONTEXT
+          value: app-repo
+        - name: MAVEN_COMMAND
+          value: "spotbugs:check"
+      workspaces:
+        - name: source
+          workspace: workspace
+    # ------------ BUILD ------------ #
+    # Created image Digest in results: IMAGE_DIGEST
+    - name: build-image
+      runAfter:
+        - coverage
+        - checkstyle-validation
+        - code-linting
+        - spotbugs-check
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE_REGISTRY)/$(params.IMAGE)
+        - name: TLSVERIFY
+          value: 'false'
+        - name: PATH_CONTEXT
+          value: app-repo
+        - name: VERSION
+          value: $(params.BUILD_VERSION)
+      taskRef:
+        kind: Task
+        name: s2i
+      workspaces:
+        - name: source
+          workspace: workspace
+    # ------------ GENERATE VERSION ------------ #
+    - name: generate-version
+      runAfter:
+        - coverage
+        - checkstyle-validation
+        - code-linting
+        - spotbugs-check
+      taskRef:
+        kind: Task
+        name: generate-version
+      params:
+        - name: PATH_CONTEXT
+          value: app-repo
+      workspaces:
+        - name: source
+          workspace: workspace
+    # ------------ TAG IMAGE ------------ #
+    - name: tag-image-dev
+      runAfter:
+        - generate-version
+        - build-image
+      taskRef:
+        kind: Task
+        name: tag-image
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE)
+        - name: IMAGE_DIGEST
+          value: "$(tasks.build-image.results.IMAGE_DIGEST)"
+        - name: IMAGE_NEW_TAG
+          value: "$(tasks.generate-version.results.VERSION)-dev"
+    # ------------ DEPLOY TO DEV ------------ #
+    - name: deploy-dev
+      runAfter:
+        - tag-image-dev
+      taskRef:
+        kind: Task
+        name: deploy
+      params:
+        - name: APP_NAME
+          value: $(params.APP_NAME)
+        - name: PATH_CONTEXT
+          value: deploy-repo
+        - name: ENV
+          value: dev
+        - name: IMAGE_REGISTRY
+          value: $(params.IMAGE_REGISTRY)
+        - name: IMAGE
+          value: $(params.IMAGE)
+        - name: IMAGE_VERSION
+          value: "$(tasks.generate-version.results.VERSION)-dev"
+        - name: REPO
+          value: "$(params.DEPLOY_REPO)"
+        - name: CONFIGURATION_SECRET
+          value: "$(params.CONFIGURATION_SECRET)"
+      workspaces:
+        - name: source
+          workspace: workspace
+    # ------------ CREATE PRE_RELEASE ------------ #
+    - name: tag-release-candidate
+      runAfter:
+        - deploy-dev
+      taskRef:
+        kind: Task
+        name: tag-image
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE)
+        - name: IMAGE_TAG
+          value: "$(tasks.generate-version.results.VERSION)-dev"
+        - name: IMAGE_NEW_TAG
+          value: "$(tasks.generate-version.results.VERSION)-rc"
+    # ------------ DEPLOY TO STAGE ------------ #
+    - name: deploy-stage
+      runAfter:
+        - tag-release-candidate
+      taskRef:
+        kind: Task
+        name: deploy
+      params:
+        - name: APP_NAME
+          value: $(params.APP_NAME)
+        - name: PATH_CONTEXT
+          value: deploy-repo
+        - name: ENV
+          value: stage
+        - name: IMAGE_REGISTRY
+          value: $(params.IMAGE_REGISTRY)
+        - name: IMAGE
+          value: $(params.IMAGE)
+        - name: IMAGE_VERSION
+          value: "$(tasks.generate-version.results.VERSION)-rc"
+        - name: REPO
+          value: "$(params.DEPLOY_REPO)"
+        - name: CONFIGURATION_SECRET
+          value: "$(params.CONFIGURATION_SECRET)"
+      workspaces:
+        - name: source
+          workspace: workspace
+    # ------------ PERFORMANCE TESTS ------------ #
+    - name: performance-tests
+      runAfter:
+        - deploy-stage
+      taskRef:
+        kind: Task
+        name: run-maven
+      params:
+        - name: PATH_CONTEXT
+          value: app-repo
+        - name: MAVEN_COMMAND
+          value: "gatling:test -DBASE_URL=$(params.PERFORMANCE_TESTS_URL)"
+      workspaces:
+        - name: source
+          workspace: workspace
+    # ------------ CREATE RELEASE ------------ #
+    - name: git-release
+      runAfter:
+        - performance-tests
+      taskRef:
+        kind: Task
+        name: git-release
+      params:
+        - name: APP_NAME
+          value: $(params.APP_NAME)
+        - name: PATH_CONTEXT
+          value: app-repo
+        - name: IMAGE_VERSION
+          value: "$(tasks.generate-version.results.VERSION)"
+        - name: REPO
+          value: "$(params.APP_REPO)"
+        - name: CONFIGURATION_SECRET
+          value: "$(params.CONFIGURATION_SECRET)"
+        - name: PIPELINERUN_URL
+          value: "$(tasks.get-pipelinerun-url.results.PIPELINERUN_URL)"
+      workspaces:
+        - name: source
+          workspace: workspace
+    - name: tag-release
+      runAfter:
+        - performance-tests
+      taskRef:
+        kind: Task
+        name: tag-image
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE)
+        - name: IMAGE_TAG
+          value: "$(tasks.generate-version.results.VERSION)-rc"
+        - name: IMAGE_NEW_TAG
+          value: "$(tasks.generate-version.results.VERSION)"
+    # ------------ DEPLOY TO PROD ------------ #
+    - name: deploy-prod
+      runAfter:
+        - git-release
+        - tag-release
+      taskRef:
+        kind: Task
+        name: deploy-pr
+      params:
+        - name: APP_NAME
+          value: $(params.APP_NAME)
+        - name: PATH_CONTEXT
+          value: deploy-repo
+        - name: ENV
+          value: prod
+        - name: CONFIGURATION_SECRET
+          value: "$(params.CONFIGURATION_SECRET)"
+        - name: IMAGE
+          value: "$(params.IMAGE)"
+        - name: IMAGE_REGISTRY
+          value: "$(params.IMAGE_REGISTRY)"
+        - name: IMAGE_VERSION
+          value: "$(tasks.generate-version.results.VERSION)"
+        - name: DEPLOY_REPO
+          value: "$(params.DEPLOY_REPO)"
+        - name: APP_REPO
+          value: "$(params.APP_REPO)"
+        - name: PIPELINERUN_URL
+          value: "$(tasks.get-pipelinerun-url.results.PIPELINERUN_URL)"
+      workspaces:
+        - name: source
+          workspace: workspace
+  workspaces:
+    - name: workspace

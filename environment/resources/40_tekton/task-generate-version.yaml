@@ -1,0 +1,31 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: generate-version
+  namespace: ci-cd-workspace
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+spec:
+  description: >-
+    This Task is used to generate application version based on timestamp and pom version.
+  workspaces:
+    - name: source
+      description: The workspace consisting of maven project.
+  params:
+    - name: PATH_CONTEXT
+      type: string
+  results:
+    - name: VERSION
+      description: Generated version
+  steps:
+    - name: generate-version
+      image: maven:3.8.1-openjdk-17-slim
+      workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
+      script: |
+        POM_VERSION=$(/usr/bin/mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+
+        CURRENT_TIME=$(date +%s)
+
+        echo $POM_VERSION-$CURRENT_TIME | tee /tmp/version.txt
+        # Trim the string to remove newline from the end
+        tr --delete '\n' </tmp/version.txt >$(results.VERSION.path)

@@ -1,0 +1,53 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: coverage
+  namespace: ci-cd-workspace
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+spec:
+  workspaces:
+    - name: source
+      description: The workspace where code repository is located
+  params:
+    - name: PATH_CONTEXT
+      type: string
+    - name: JACOCO_CSV
+      type: string
+      default: "target/coverage/jacoco.csv"
+    - name: COVERAGE_LIMIT
+      type: string
+      default: 90
+  steps:
+    - name: check-coverage
+      image: registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8:v1.14.4-1
+      workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
+      script: |
+
+        awk -F, '
+          BEGIN {
+              printf "%-30s %-20s\n", "Class", "Line Coverage (%)"
+              printf "%-50s\n", "==============================================="
+          }
+          NR > 1 {
+              class_name = $3
+              instruction_missed = $4
+              instruction_covered = $5
+              total_instructions = instruction_missed + instruction_covered
+              if (total_instructions > 0) {
+                  instruction_coverage = (instruction_covered / total_instructions) * 100
+              } else {
+                  instruction_coverage = 0
+              }
+              printf "%-30s %-20.2f\n", class_name, instruction_coverage
+          }
+        ' "$(params.JACOCO_CSV)"
+
+        COVERAGE=$(awk -F, '{ instructions += $4 + $5; covered += $5 } END { print 100*covered/instructions }' $(params.JACOCO_CSV))
+
+        if (( $(echo "$COVERAGE < $(params.COVERAGE_LIMIT)") )); then
+            echo "Coverage $COVERAGE% is less than the required $(params.COVERAGE_LIMIT)%"
+            exit 1
+        else
+            echo "Coverage $COVERAGE% meets or exceeds the required $(params.COVERAGE_LIMIT)%"
+        fi

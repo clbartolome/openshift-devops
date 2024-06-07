@@ -1,0 +1,94 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy-pr
+  namespace: ci-cd-workspace
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+    description: |
+      Creates a pull request to deploy an new image version
+spec:
+  workspaces:
+    - name: source
+      description: The workspace where cicd repo will be modified.
+  params:
+    - name: APP_NAME
+      type: string
+    - name: PATH_CONTEXT
+      type: string
+    - name: ENV
+      type: string
+    - name: CONFIGURATION_SECRET
+      type: string
+    - name: IMAGE
+      type: string
+    - name: IMAGE_REGISTRY
+      type: string
+    - name: IMAGE_VERSION
+      type: string
+    - name: DEPLOY_REPO
+      type: string
+    - name: APP_REPO
+      type: string
+    - name: PIPELINERUN_URL
+      type: string
+  stepTemplate:
+    envFrom:
+      - secretRef:
+          name: $(params.CONFIGURATION_SECRET)
+  steps:
+    - name: change-image-version
+      image: k8s.gcr.io/kustomize/kustomize:v3.8.7
+      workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
+      script: |
+        cd deploy/$(params.APP_NAME)/overlays/$(params.ENV)
+        /app/kustomize edit set image $(params.APP_NAME)=$(params.IMAGE_REGISTRY)/$(params.IMAGE):$(params.IMAGE_VERSION)    
+
+    - name: create-pr
+      image: registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8:v1.14.4-1
+      workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
+      script: |        
+
+        AUTH_REPO=$(echo $(params.DEPLOY_REPO) | sed -E "s#http://(.*)#http://$GITEA_USER:$GITEA_PASS@\1#g")
+
+        git config --global user.email "tekton@redhat.com"
+        git config --global user.name "tekton"
+
+        git checkout -b $(params.IMAGE_VERSION)
+        git add .
+        git commit -m "Updated $(params.ENV) image to: $(params.IMAGE):$(params.IMAGE_VERSION)"
+
+        git push $AUTH_REPO $(params.IMAGE_VERSION)
+        RESULT_SHA="$(git rev-parse HEAD | tr -d '\n')"
+        EXIT_CODE="$?"
+        if [ "$EXIT_CODE" != 0 ]
+        then
+          exit $EXIT_CODE
+        fi
+
+        PR_BODY="# $(params.APP_NAME) - $(params.IMAGE_VERSION)\n\nNew image automatically generated for $(params.ENV) environment.\n\n- [Git Release](/$GITEA_USER/$(params.APP_NAME)/releases/tag/$(params.IMAGE_VERSION))\n- [Pipeline]($(params.PIPELINERUN_URL))"
+
+        cat <<EOF > $(workspaces.source.path)/pr.json
+        {
+          "base": "master",
+          "head": "$(params.IMAGE_VERSION)",
+          "title": "$(params.ENV) update: $(params.IMAGE_VERSION)",
+          "body": "${PR_BODY}"
+        }
+        EOF
+
+        RESPONSE=$(curl -o /dev/null -s -w "%{http_code}\n" -k -X POST \
+          -u $GITEA_USER:$GITEA_PASS \
+          -d @$(workspaces.source.path)/pr.json \
+          -H "Content-Type: application/json" \
+          $GITEA_HOST/api/v1/repos/$GITEA_USER/lol-champions-deploy/pulls)
+      
+        if [ "$RESPONSE" != "201" ]; then
+            echo "Error creating pull request, error code: $RESPONSE"
+            exit 1
+        fi
+        
+
+        
+
+          

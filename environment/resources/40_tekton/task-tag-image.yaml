@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: tag-image
+  namespace: ci-cd-workspace
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+spec:
+  params:
+  - name: IMAGE
+    type: string
+  - name: IMAGE_DIGEST
+    type: string
+    default: ""
+  - name: IMAGE_TAG
+    type: string
+    default: ""
+  - name: IMAGE_NEW_TAG
+  steps:
+  - name: tag-image
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+    script: |
+      #!/usr/bin/env bash
+
+      if [ -z "$(params.IMAGE_TAG)" ]; then
+        echo "Using image digest."
+        oc tag $(params.IMAGE)@$(params.IMAGE_DIGEST) $(params.IMAGE):$(params.IMAGE_NEW_TAG)
+      else
+        echo "Using image tag."
+        oc tag $(params.IMAGE):$(params.IMAGE_TAG) $(params.IMAGE):$(params.IMAGE_NEW_TAG)
+      fi
+
