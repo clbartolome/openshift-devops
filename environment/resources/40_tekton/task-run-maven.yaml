@@ -3,6 +3,8 @@ kind: Task
 metadata:
   name: run-maven
   namespace: ci-cd-workspace
+  annotations:
+    argocd.argoproj.io/sync-wave: "48"
 spec:
   description: >-
     This Task is used to run a maven command and optionally print an output file

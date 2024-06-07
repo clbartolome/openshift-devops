@@ -3,6 +3,7 @@ kind: Task
 metadata:
   name: git-release
   annotations:
+    argocd.argoproj.io/sync-wave: "40"
     description: |
       Creates a release on git
 spec:

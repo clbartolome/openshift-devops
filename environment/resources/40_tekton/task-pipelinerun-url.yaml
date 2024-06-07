@@ -4,9 +4,9 @@ metadata:
   name: pipelinerun-url
   namespace: ci-cd-workspace
   annotations:
+    argocd.argoproj.io/sync-wave: "40"
     description: |
       Gets pipelinerun url (to web console).
-    argocd.argoproj.io/sync-wave: "10"
 spec:
   params:
   - name: PIPELINERUN_UID

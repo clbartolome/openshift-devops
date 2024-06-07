@@ -3,6 +3,7 @@ kind: Task
 metadata:
   name: coverage
   annotations:
+    argocd.argoproj.io/sync-wave: "40"
     description: |
       Check if coverage is as expected based on already executed jacoco report
 spec:

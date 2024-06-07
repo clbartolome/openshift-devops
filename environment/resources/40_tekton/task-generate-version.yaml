@@ -3,6 +3,8 @@ kind: Task
 metadata:
   name: generate-version
   namespace: ci-cd-workspace
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
 spec:
   description: >-
     This Task is used to generate application version based on timestamp and pom version.

@@ -3,6 +3,8 @@ kind: Task
 metadata:
   name: tag-image
   namespace: ci-cd-workspace
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
 spec:
   params:
   - name: IMAGE

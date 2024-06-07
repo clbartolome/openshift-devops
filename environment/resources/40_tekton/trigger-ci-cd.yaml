@@ -5,7 +5,7 @@ metadata:
   name: ci-cd
   namespace: ci-cd-workspace
   annotations:
-    argocd.argoproj.io/sync-wave: "35"
+    argocd.argoproj.io/sync-wave: "45"
 spec:
   triggers:
     - name: github-listener
@@ -30,7 +30,7 @@ metadata:
   name: ci-cd
   namespace: ci-cd-workspace
   annotations:
-    argocd.argoproj.io/sync-wave: "30"
+    argocd.argoproj.io/sync-wave: "42"
 spec:
   params:
   - name: gitRepositoryUrl
@@ -44,7 +44,7 @@ metadata:
   name: ci-cd
   namespace: ci-cd-workspace
   annotations:
-    argocd.argoproj.io/sync-wave: "30"
+    argocd.argoproj.io/sync-wave: "42"
 spec:
   params:
   - name: gitRepositoryUrl

@@ -2,6 +2,9 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: s2i
+  namespace: ci-cd-workspace
+  annotations:
+    argocd.argoproj.io/sync-wave: "48"
 spec:
   description: s2i-java task clones a Git repository and builds and pushes a container
     image using S2I and a Java builder image.

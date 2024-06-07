@@ -3,6 +3,7 @@ kind: Task
 metadata:
   name: deploy-pr
   annotations:
+    argocd.argoproj.io/sync-wave: "40"
     description: |
       Creates a pull request to deploy an new image version
 spec:

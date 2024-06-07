@@ -12,7 +12,7 @@ metadata:
   name: ci-cd
   namespace: ci-cd-workspace
   annotations:
-    argocd.argoproj.io/sync-wave: "38"
+    argocd.argoproj.io/sync-wave: "48"
 spec:
   params:
     - name: APP_NAME

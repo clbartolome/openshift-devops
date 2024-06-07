@@ -3,6 +3,7 @@ kind: Task
 metadata:
   name: deploy
   annotations:
+    argocd.argoproj.io/sync-wave: "40"
     description: |
       Deploys an image on a specific environment (updates repo and sync ArgoCD)
 spec:
