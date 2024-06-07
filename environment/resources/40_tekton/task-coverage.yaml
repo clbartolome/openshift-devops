@@ -17,7 +17,7 @@ spec:
       default: "target/coverage/jacoco.csv"
     - name: COVERAGE_LIMIT
       type: string
-      default: 90
+      default: '90'
   steps:
     - name: check-coverage
       image: registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8:v1.14.4-1
