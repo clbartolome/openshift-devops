@@ -2,6 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: deploy-pr
+  namespace: ci-cd-workspace
   annotations:
     argocd.argoproj.io/sync-wave: "40"
     description: |
