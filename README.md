@@ -26,10 +26,12 @@ operators:
   ...
 ```
 
-Login in an OpenShift cluster and run the playbook:
+Login in an OpenShift cluster and run (from installation/ansible-navigator folder):
 
 ```sh
-ansible-playbook installation/install_demo.yaml
+ansible-navigator run ../install_demo.yaml -m stdout \
+  -e "ocp_host=<** p.ej: server.domain.com **>" \
+  -e "api_token=<** p.ej: sha256~..... **>"
 ```
 
 ## Uninstall
@@ -38,9 +40,11 @@ Use same configuration as in Installation.
 
 IMPORTANT: Operators will not be uninstalled
 
-Login in an OpenShift cluster and run the playbook:
+Login in an OpenShift cluster and run (from installation/ansible-navigator folder):
 
 ```sh
-ansible-playbook installation/uninstall_demo.yaml
+ansible-navigator run ../uninstall_demo.yaml -m stdout \
+  -e "ocp_host=<** p.ej: server.domain.com **>" \
+  -e "api_token=<** p.ej: sha256~..... **>"
 ```
 

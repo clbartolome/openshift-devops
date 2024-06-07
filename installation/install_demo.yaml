@@ -1,8 +1,14 @@
 ---
 - name: Install Demo in OpenShift
   hosts: localhost
+  collections:
+    - community.general
   
   tasks:
+    - name: Setup kubeconfig file
+      include_role:
+        name: kubeconfig
+        
     - name: Create Demo namespaces
       kubernetes.core.k8s:
         state: present
@@ -91,14 +97,17 @@
             project: default
             source:
               repoURL: https://github.com/clbartolome/openshift-devops.git
-              targetRevision: feature/cicd-pipeline
+              targetRevision: master
               path: environment/resources/
               directory:
                 recurse: true
             destination:
               server: https://kubernetes.default.svc
               namespace: openshift-gitops
-            syncPolicy: {}
+            syncPolicy:
+              automated:
+                prune: true
+                selfHeal: true
 
 
     - name: Get argoCD admin password
@@ -123,9 +132,23 @@
             GITEA_PASS: "{{ 'openshift' | b64encode }}"
             GITEA_HOST: "{{ 'http://gitea.gitea.svc.cluster.local:3000' | b64encode }}"
 
-    - name: Display message after role execution
-      debug:
-        msg: "Running tasks after role execution"
+    - name: Print Demo Environment URLs and credentials
+      ansible.builtin.debug:
+        msg:
+        - "--------------------------------------------------------------------------"
+        - "Gitea URL: http://gitea.gitea.apps.{{ ocp_host }}"
+        - "Gitea Credentials: gitea / openshift"
+        - "--------------------------------------------------------------------------"
+        - "OpenShift GitOps URL: https://openshift-gitops-server-openshift-gitops.apps.{{ ocp_host }}"
+        - "OpenShift GitOps Credentials: admin / {{ argoPass.stdout | b64decode  }}"
+        - "--------------------------------------------------------------------------"
+        - "LOL Champions App URLs:"
+        - "    - DEV: http://lol-champions-app-lol-champions-dev.apps.{{ ocp_host }}"
+        - "    - STAGE: http://lol-champions-app-lol-champions-stage.apps.{{ ocp_host }}"
+        - "    - PROD: http://lol-champions-app-lol-champions-prod.apps.{{ ocp_host }}"
+        - " "
+        - "Note: wait until openshift-devops-environment application is synced in ArgoCD"
+        - "--------------------------------------------------------------------------"
   
   vars_files:
     - vars.yaml

@@ -237,7 +237,7 @@ spec:
         - name: IMAGE
           value: $(params.IMAGE)
         - name: IMAGE_VERSION
-          value: "$(tasks.generate-version.results.VERSION)"
+          value: "$(tasks.generate-version.results.VERSION)-dev"
         - name: REPO
           value: "$(params.DEPLOY_REPO)"
         - name: CONFIGURATION_SECRET
@@ -278,7 +278,7 @@ spec:
         - name: IMAGE
           value: $(params.IMAGE)
         - name: IMAGE_VERSION
-          value: "$(tasks.generate-version.results.VERSION)"
+          value: "$(tasks.generate-version.results.VERSION)-rc"
         - name: REPO
           value: "$(params.DEPLOY_REPO)"
         - name: CONFIGURATION_SECRET

@@ -1,0 +1,30 @@
+---
+
+- name: Ensure KUBECONFIG directory exists
+  ansible.builtin.file:
+    path: "{{ kubeconfig_path | default('~/.kube') }}"
+    state: directory
+    mode: '0755'
+
+- name: Create KUBECONFIG file
+  ansible.builtin.copy:
+    dest: "{{ kubeconfig_file | default('~/.kube/config') }}"
+    content: |
+      apiVersion: v1
+      clusters:
+      - cluster:
+          server: "https://api.{{ ocp_host }}:6443"
+          insecure-skip-tls-verify: true
+        name: openshift
+      contexts:
+      - context:
+          cluster: openshift
+          user: openshift-user
+        name: openshift-context
+      current-context: openshift-context
+      kind: Config
+      preferences: {}
+      users:
+      - name: openshift-user
+        user:
+          token: "{{ api_token }}"

@@ -1,0 +1,76 @@
+schemaVersion: 2.2.0
+metadata:
+  name: lol-champions
+  displayName: LOL Champions
+  description: LOL Champions native development environment
+  icon: https://design.jboss.org/quarkus/logo/final/SVG/quarkus_icon_rgb_default.svg
+  tags:
+    - Java
+    - Quarkus
+  projectType: Quarkus
+  language: Java
+  version: 1.3.0
+components:
+  - name: tools
+    container:
+      image: registry.access.redhat.com/ubi8/openjdk-17:1.18-2
+      args: ['tail', '-f', '/dev/null']
+      memoryLimit: 1024Mi ## default app nowhere needs this but leaving room for expansion.
+      mountSources: true
+      volumeMounts:
+        - name: m2
+          path: /home/user/.m2
+      endpoints:
+        - name: lol-app-ui
+          targetPort: 8080
+          protocol: http
+        - name: lol-app-health
+          targetPort: 8080
+          protocol: http
+          path: /q/health/live
+  - name: postgres
+    container:
+      image: postgres
+      env:
+        - name: PGDATA
+          value: /tmp/pgdata
+        - name: POSTGRES_USER
+          value: develop
+        - name: POSTGRES_PASSWORD
+          value: develop
+        - name: POSTGRES_DB
+          value: lol-app-db
+      memoryLimit: 512Mi
+      mountSources: true
+      sourceMapping: /projects
+      volumeMounts:
+        - name: postgresql-data
+          path: /var/lib/postgresql/data
+  - name: m2
+    volume:
+      size: 1Gi
+  - name: postgresql-data
+    volume: {}
+commands:
+  - id: init-compile
+    exec:
+      label: 1. Package the application
+      component: tools
+      commandLine: 'mvn -Dmaven.repo.local=/home/user/.m2/repository package -DskipTests'
+      workingDir: ${PROJECT_SOURCE}/lol-champions-app
+  - id: unit-test
+    exec:
+      label: 2. Run unit tests
+      component: tools
+      commandLine: 'mvn -Dmaven.repo.local=/home/user/.m2/repository test'
+      workingDir: ${PROJECT_SOURCE}/lol-champions-app
+  - id: dev-run
+    exec:
+      label: 3. Run Quarkus dev mode
+      component: tools
+      commandLine: 'mvn -Dmaven.repo.local=/home/user/.m2/repository quarkus:dev -Dquarkus.http.host=0.0.0.0'
+      hotReloadCapable: true
+      group:
+        kind: run
+        isDefault: true
+      workingDir: ${PROJECT_SOURCE}/lol-champions-app
