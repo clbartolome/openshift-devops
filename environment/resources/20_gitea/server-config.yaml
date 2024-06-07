@@ -32,7 +32,7 @@ data:
     ROOT = /gitea-repositories
 
     [webhook]
-    ALLOWED_HOST_LIST = el-trigger-collection-pull-request.automation-cicd.svc.cluster.local
+    ALLOWED_HOST_LIST = *
 
     [server]
     # ROOT_URL         = http://@HOSTNAME
