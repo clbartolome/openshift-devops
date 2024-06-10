@@ -337,8 +337,8 @@ spec:
           value: "$(tasks.generate-version.results.VERSION)-rc"
         - name: IMAGE_NEW_TAG
           value: "$(tasks.generate-version.results.VERSION)"
-    # ------------ DEPLOY TO PROD ------------ #
-    - name: deploy-prod
+    # ------------ PR DEPLOY TO PROD ------------ #
+    - name: pr-deploy-prod
       runAfter:
         - git-release
         - tag-release
