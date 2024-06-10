@@ -136,7 +136,7 @@
       ansible.builtin.debug:
         msg:
         - "--------------------------------------------------------------------------"
-        - "Gitea URL: http://gitea.gitea.apps.{{ ocp_host }}"
+        - "Gitea URL: http://gitea-gitea.apps.{{ ocp_host }}"
         - "Gitea Credentials: gitea / openshift"
         - "--------------------------------------------------------------------------"
         - "OpenShift GitOps URL: https://openshift-gitops-server-openshift-gitops.apps.{{ ocp_host }}"
