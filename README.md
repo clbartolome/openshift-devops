@@ -30,8 +30,8 @@ Login in an OpenShift cluster and run (from installation/ansible-navigator folde
 
 ```sh
 ansible-navigator run ../install_demo.yaml -m stdout \
-  -e "ocp_host=<** p.ej: server.domain.com **>" \
-  -e "api_token=<** p.ej: sha256~..... **>"
+  -e "ocp_host=<** e.g.: server.domain.com **>" \
+  -e "api_token=<** e.g.: sha256~..... **>"
 ```
 
 ## Uninstall
@@ -44,7 +44,7 @@ Login in an OpenShift cluster and run (from installation/ansible-navigator folde
 
 ```sh
 ansible-navigator run ../uninstall_demo.yaml -m stdout \
-  -e "ocp_host=<** p.ej: server.domain.com **>" \
-  -e "api_token=<** p.ej: sha256~..... **>"
+  -e "ocp_host=<** e.g.: server.domain.com **>" \
+  -e "api_token=<** e.g.: sha256~..... **>"
 ```
 
