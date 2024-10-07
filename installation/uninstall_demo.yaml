@@ -13,7 +13,7 @@
         api_version: argoproj.io/v1alpha1
         kind: Application
         namespace: openshift-gitops
-        name: openshift-devops-environment
+        name: demo-environment
 
     - name: Delete Demo namespaces
       kubernetes.core.k8s:

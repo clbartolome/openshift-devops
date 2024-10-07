@@ -1,14 +1,15 @@
 ---
-- name: Install Demo in OpenShift
+- name: Demo Installation
   hosts: localhost
+  gather_facts: false
   collections:
     - community.general
-  
+
   tasks:
     - name: Setup kubeconfig file
       include_role:
         name: kubeconfig
-        
+    
     - name: Create Demo namespaces
       kubernetes.core.k8s:
         state: present
@@ -29,86 +30,16 @@
         loop_var: namespace
       when: imagesSource.enabled|bool == true
 
-    - name: Install Operators
-      include_role:
-        name: install_operators
+    - name: Assign GitOps cluster-admin role to ArgoCD
+      ansible.builtin.command: >
+        oc adm policy add-cluster-role-to-user cluster-admin 
+        system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller
+        -n openshift-gitops
 
-    - name: Create lol-champions-app BuildConfig
+    - name: Deploy Environment via GitOps
       kubernetes.core.k8s:
         state: present
-        definition:
-          apiVersion: build.openshift.io/v1
-          kind: BuildConfig
-          metadata:
-            name: lol-champions-app-init
-            namespace: ci-cd-workspace
-          spec:
-            failedBuildsHistoryLimit: 1
-            output:
-              to:
-                kind: ImageStreamTag
-                name: lol-champions-app:1.0.0-init
-            runPolicy: Serial
-            source:
-              contextDir: /lol-champions-app
-              git:
-                ref: master
-                uri: https://github.com/clbartolome/openshift-devops.git
-              type: Git
-            strategy:
-              sourceStrategy:
-                from:
-                  kind: ImageStreamTag
-                  name: java:openjdk-17-ubi8
-                  namespace: openshift
-              type: Source
-            successfulBuildsHistoryLimit: 1
-
-    - name: Create Image Stream for lol-champions-app
-      kubernetes.core.k8s:
-        state: present
-        definition:
-          apiVersion: v1
-          kind: ImageStream
-          metadata:
-            name: lol-champions-app
-            namespace: ci-cd-workspace
-
-    - name: Start lol-champions-app Build and wait
-      ansible.builtin.command:
-        cmd: oc start-build lol-champions-app-init -n ci-cd-workspace -w       
-
-    - name: ArgoCD
-      include_role:
-        name: argo_cd
-
-    - name: Create demo environment on ArgoCD
-      kubernetes.core.k8s:
-        state: present
-        definition:
-          apiVersion: argoproj.io/v1alpha1
-          kind: Application
-          metadata:
-            name: openshift-devops-environment
-            namespace: openshift-gitops
-            finalizers:
-              - resources-finalizer.argocd.argoproj.io
-          spec:
-            project: default
-            source:
-              repoURL: https://github.com/clbartolome/openshift-devops.git
-              targetRevision: master
-              path: environment/resources/
-              directory:
-                recurse: true
-            destination:
-              server: https://kubernetes.default.svc
-              namespace: openshift-gitops
-            syncPolicy:
-              automated:
-                prune: true
-                selfHeal: true
-
+        src: "environment.yaml"
 
     - name: Get argoCD admin password
       ansible.builtin.command:
@@ -123,7 +54,7 @@
           kind: Secret
           metadata:
             name: ci-cd-config
-            namespace: ci-cd-workspace
+            namespace: ci-cd-demo
           data:
             ARGOCD_SERVER: "{{ 'openshift-gitops-server.openshift-gitops.svc.cluster.local' | b64encode }}"
             ARGOCD_USERNAME: "{{ 'admin' | b64encode }}"
@@ -132,7 +63,7 @@
             GITEA_PASS: "{{ 'openshift' | b64encode }}"
             GITEA_HOST: "{{ 'http://gitea.gitea.svc.cluster.local:3000' | b64encode }}"
 
-    - name: Print Demo Environment URLs and credentials
+    - name: Demo Environment Details
       ansible.builtin.debug:
         msg:
         - "--------------------------------------------------------------------------"
@@ -142,12 +73,7 @@
         - "OpenShift GitOps URL: https://openshift-gitops-server-openshift-gitops.apps.{{ ocp_host }}"
         - "OpenShift GitOps Credentials: admin / {{ argoPass.stdout | b64decode  }}"
         - "--------------------------------------------------------------------------"
-        - "LOL Champions App URLs:"
-        - "    - DEV: http://lol-champions-app-lol-champions-dev.apps.{{ ocp_host }}"
-        - "    - STAGE: http://lol-champions-app-lol-champions-stage.apps.{{ ocp_host }}"
-        - "    - PROD: http://lol-champions-app-lol-champions-prod.apps.{{ ocp_host }}"
-        - " "
-        - "Note: wait until openshift-devops-environment application is synced in ArgoCD"
+        - "Note: wait until demo-environment application is synced in ArgoCD"
         - "--------------------------------------------------------------------------"
   
   vars_files:
