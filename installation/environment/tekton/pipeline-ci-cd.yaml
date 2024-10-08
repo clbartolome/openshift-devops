@@ -193,10 +193,13 @@ spec:
     # ------------ GENERATE VERSION ------------ #
     - name: generate-version
       runAfter:
-        - coverage
-        - checkstyle-validation
-        - code-linting
-        - spotbugs-check
+        # - coverage
+        # - checkstyle-validation
+        # - code-linting
+        # - spotbugs-check
+        - get-pipelinerun-url
+        - fetch-app-repository
+        - fetch-deploy-repository
       taskRef:
         kind: Task
         name: generate-version
