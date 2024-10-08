@@ -47,6 +47,8 @@ spec:
         yq -i '(.[] | select(.image.url) | .image.url) = "$(params.IMAGE_REGISTRY)/$(params.IMAGE)"' values.yaml
         yq -i '(.[] | select(.image.version) | .image.version) = "$(params.IMAGE_VERSION)"' values.yaml 
 
+        cat values.yaml
+
     - name: create-pr
       image: registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8:v1.14.4-1
       workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
