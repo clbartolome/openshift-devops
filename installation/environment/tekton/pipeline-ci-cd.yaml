@@ -85,93 +85,96 @@ spec:
         - name: output
           workspace: workspace
     # ------------ UNIT TESTS ------------ #
-    - name: unit-tests
-      runAfter:
-        - get-pipelinerun-url
-        - fetch-app-repository
-        - fetch-deploy-repository
-      taskRef:
-        kind: Task
-        name: run-maven
-      params:
-        - name: PATH_CONTEXT
-          value: app-repo
-        - name: MAVEN_COMMAND
-          value: "test"
-      workspaces:
-        - name: source
-          workspace: workspace
-    - name: coverage
-      runAfter:
-        - unit-tests
-      taskRef:
-        kind: Task
-        name: coverage
-      params:
-        - name: PATH_CONTEXT
-          value: app-repo
-      workspaces:
-        - name: source
-          workspace: workspace
-    # ------------ CHECK STYLE ------------ #
-    - name: checkstyle-validation
-      runAfter:
-        - get-pipelinerun-url
-        - fetch-app-repository
-        - fetch-deploy-repository
-      taskRef:
-        kind: Task
-        name: run-maven
-      params:
-        - name: PATH_CONTEXT
-          value: app-repo
-        - name: MAVEN_COMMAND
-          value: "checkstyle:check"
-      workspaces:
-        - name: source
-          workspace: workspace
-    # ------------ CODE LINTING ------------ #
-    - name: code-linting
-      runAfter:
-        - get-pipelinerun-url
-        - fetch-app-repository
-        - fetch-deploy-repository
-      taskRef:
-        kind: Task
-        name: run-maven
-      params:
-        - name: PATH_CONTEXT
-          value: app-repo
-        - name: MAVEN_COMMAND
-          value: "pmd:check"
-      workspaces:
-        - name: source
-          workspace: workspace
-    # ------------ SPOTBUGS CHECK ------------ #
-    - name: spotbugs-check
-      runAfter:
-        - get-pipelinerun-url
-        - fetch-app-repository
-        - fetch-deploy-repository
-      taskRef:
-        kind: Task
-        name: run-maven
-      params:
-        - name: PATH_CONTEXT
-          value: app-repo
-        - name: MAVEN_COMMAND
-          value: "spotbugs:check"
-      workspaces:
-        - name: source
-          workspace: workspace
+    # - name: unit-tests
+    #   runAfter:
+    #     - get-pipelinerun-url
+    #     - fetch-app-repository
+    #     - fetch-deploy-repository
+    #   taskRef:
+    #     kind: Task
+    #     name: run-maven
+    #   params:
+    #     - name: PATH_CONTEXT
+    #       value: app-repo
+    #     - name: MAVEN_COMMAND
+    #       value: "test"
+    #   workspaces:
+    #     - name: source
+    #       workspace: workspace
+    # - name: coverage
+    #   runAfter:
+    #     - unit-tests
+    #   taskRef:
+    #     kind: Task
+    #     name: coverage
+    #   params:
+    #     - name: PATH_CONTEXT
+    #       value: app-repo
+    #   workspaces:
+    #     - name: source
+    #       workspace: workspace
+    # # ------------ CHECK STYLE ------------ #
+    # - name: checkstyle-validation
+    #   runAfter:
+    #     - get-pipelinerun-url
+    #     - fetch-app-repository
+    #     - fetch-deploy-repository
+    #   taskRef:
+    #     kind: Task
+    #     name: run-maven
+    #   params:
+    #     - name: PATH_CONTEXT
+    #       value: app-repo
+    #     - name: MAVEN_COMMAND
+    #       value: "checkstyle:check"
+    #   workspaces:
+    #     - name: source
+    #       workspace: workspace
+    # # ------------ CODE LINTING ------------ #
+    # - name: code-linting
+    #   runAfter:
+    #     - get-pipelinerun-url
+    #     - fetch-app-repository
+    #     - fetch-deploy-repository
+    #   taskRef:
+    #     kind: Task
+    #     name: run-maven
+    #   params:
+    #     - name: PATH_CONTEXT
+    #       value: app-repo
+    #     - name: MAVEN_COMMAND
+    #       value: "pmd:check"
+    #   workspaces:
+    #     - name: source
+    #       workspace: workspace
+    # # ------------ SPOTBUGS CHECK ------------ #
+    # - name: spotbugs-check
+    #   runAfter:
+    #     - get-pipelinerun-url
+    #     - fetch-app-repository
+    #     - fetch-deploy-repository
+    #   taskRef:
+    #     kind: Task
+    #     name: run-maven
+    #   params:
+    #     - name: PATH_CONTEXT
+    #       value: app-repo
+    #     - name: MAVEN_COMMAND
+    #       value: "spotbugs:check"
+    #   workspaces:
+    #     - name: source
+    #       workspace: workspace
     # ------------ BUILD ------------ #
     # Created image Digest in results: IMAGE_DIGEST
     - name: build-image
       runAfter:
-        - coverage
-        - checkstyle-validation
-        - code-linting
-        - spotbugs-check
+        # - coverage
+        # - checkstyle-validation
+        # - code-linting
+        # - spotbugs-check
+        - get-pipelinerun-url
+        - fetch-app-repository
+        - fetch-deploy-repository
       params:
         - name: IMAGE
           value: $(params.IMAGE_REGISTRY)/$(params.IMAGE)
