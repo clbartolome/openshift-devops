@@ -40,11 +40,14 @@ spec:
           name: $(params.CONFIGURATION_SECRET)
   steps:
     - name: change-image-version
-      image: k8s.gcr.io/kustomize/kustomize:v3.8.7
+      image: quay.io/calopezb/yq-tool:1.0.0
       workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
       script: |
-        cd deploy/$(params.APP_NAME)/overlays/$(params.ENV)
-        /app/kustomize edit set image $(params.APP_NAME)=$(params.IMAGE_REGISTRY)/$(params.IMAGE):$(params.IMAGE_VERSION)        
+      
+        cd $(params.ENV)
+
+        yq -i '(.[] | select(.image.url) | .image.url) = $(params.IMAGE_REGISTRY)/$(params.IMAGE)' values.yaml
+        yq -i '(.[] | select(.image.version) | .image.version) = $(params.IMAGE_VERSION)' values.yaml 
 
     - name: push-image-version
       image: registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8:v1.14.4-1

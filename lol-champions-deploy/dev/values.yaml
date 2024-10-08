@@ -6,7 +6,7 @@ basic-postgresql-app:
   replicas: 1
 
   image:
-    url: quayi.io/calopezb/test
+    url: quay.io/calopezb/wrong-image
     version: 1.0.0
 
   network:
