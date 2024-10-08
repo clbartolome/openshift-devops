@@ -1,9 +1,9 @@
 basic-postgresql-app:
 
   name: lol-champions
-  environment: dev
+  environment: prod
 
-  replicas: 1
+  replicas: 3
 
   image:
     url: quayi.io/calopezb/test

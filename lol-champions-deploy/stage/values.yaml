@@ -1,7 +1,7 @@
 basic-postgresql-app:
 
   name: lol-champions
-  environment: dev
+  environment: stage
 
   replicas: 1
 
