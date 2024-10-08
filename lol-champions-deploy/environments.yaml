@@ -13,6 +13,10 @@ spec:
         elements:
         - environment: "dev"
           branch: master
+        - environment: "stage"
+          branch: master
+        - environment: "prod"
+          branch: master
   template:
     metadata:
       name: 'lol-champions-{{ environment }}'
