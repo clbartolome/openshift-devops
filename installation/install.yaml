@@ -46,14 +46,14 @@
             name: "{{ app_name }}-config"
             namespace: "{{ namespace.name }}"
           data:
-            POSTGRESQL_USER: "bG9sLXVzZXIK"
-            POSTGRESQL_PASSWORD: "Y2g0bXAxMG41Cg=="
-            POSTGRESQL_DATABASE: "bG9sLWNoYW1waW9ucy1kYgo="
-            DB_USER: "bG9sLXVzZXIK"
-            DB_PASS: "Y2g0bXAxMG41Cg=="
-            DB_HOST: "bG9sLWNoYW1waW9ucy1kYgo="
-            DB_NAME: "bG9sLWNoYW1waW9ucy1kYgo="
-            DB_PORT: NTQzMgo=
+            POSTGRESQL_USER: "bG9sLXVzZXI="
+            POSTGRESQL_PASSWORD: "Y2g0bXAxMG41"
+            POSTGRESQL_DATABASE: "bG9sLWNoYW1waW9ucy1kYg=="
+            DB_USER: "bG9sLXVzZXI="
+            DB_PASS: "Y2g0bXAxMG41"
+            DB_HOST: "bG9sLWNoYW1waW9ucy1kYg=="
+            DB_NAME: "bG9sLWNoYW1waW9ucy1kYg=="
+            DB_PORT: NTQzMg==
       loop: "{{ demoNamespaces }}"
       loop_control:
         loop_var: namespace
