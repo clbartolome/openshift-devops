@@ -28,13 +28,36 @@
       loop: "{{ demoNamespaces }}"
       loop_control:
         loop_var: namespace
-      when: imagesSource.enabled|bool == true
+      when: (imagesSource.enabled|bool == true) and (namespace.type == 'application')
 
     - name: Assign GitOps cluster-admin role to ArgoCD
       ansible.builtin.command: >
         oc adm policy add-cluster-role-to-user cluster-admin 
         system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller
         -n openshift-gitops
+
+    - name: Create applications configuration secret
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: "{{ app_name }}-config"
+            namespace: "{{ namespace.name }}"
+          data:
+            POSTGRESQL_USER: "bG9sLXVzZXIK"
+            POSTGRESQL_PASSWORD: "Y2g0bXAxMG41Cg=="
+            POSTGRESQL_DATABASE: "bG9sLWNoYW1waW9ucy1kYgo="
+            DB_USER: "bG9sLXVzZXIK"
+            DB_PASS: "Y2g0bXAxMG41Cg=="
+            DB_HOST: "bG9sLWNoYW1waW9ucy1kYgo="
+            DB_NAME: "bG9sLWNoYW1waW9ucy1kYgo="
+            DB_PORT: NTQzMgo=
+      loop: "{{ demoNamespaces }}"
+      loop_control:
+        loop_var: namespace
+      when: namespace.type == 'application'
 
     - name: Deploy Environment via GitOps
       kubernetes.core.k8s:
@@ -54,7 +77,7 @@
           kind: Secret
           metadata:
             name: ci-cd-config
-            namespace: ci-cd-demo
+            namespace: ci-cd-workspace
           data:
             ARGOCD_SERVER: "{{ 'openshift-gitops-server.openshift-gitops.svc.cluster.local' | b64encode }}"
             ARGOCD_USERNAME: "{{ 'admin' | b64encode }}"

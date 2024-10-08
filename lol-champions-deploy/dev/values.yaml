@@ -1,0 +1,10 @@
+name: lol-champions
+environment: dev
+
+image:
+  url: quayi.io/calopezb/test
+  version: 1.0.0
+
+network:
+  port: 8080
+  routeEnabled: true

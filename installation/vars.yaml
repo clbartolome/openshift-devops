@@ -1,13 +1,21 @@
 ---
 demoNamespaces:
-  # Exclude operators installation namespaces
   - name: gitea
+    type: management
   - name: ci-cd-workspace
+    type: management
   - name: lol-champions-dev
+    type: application
   - name: lol-champions-stage
+    type: application
   - name: lol-champions-prod
+    type: application
+  - name: sealed-secrets
+    type: management
 
 argo_user: admin
+
+app_name: lol-champions
 
 imagesSource:
   # Configure if you need namespaces to pull images from an specific one

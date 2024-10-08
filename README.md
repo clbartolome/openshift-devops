@@ -1,6 +1,13 @@
 # openshift-devops
 Repository with an application lifecycle overview
 
+
+> [!IMPORTANT]  
+> Last working versions: 
+> - OpenShift: 4.16.13
+> - OpenShift GitOps: 1.14.0
+> - OpenShift Pipelines: 1.15.1 
+
 ## Install
 
 ### Pre-requisites

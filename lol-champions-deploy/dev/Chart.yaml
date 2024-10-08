@@ -1,0 +1,8 @@
+apiVersion: v2
+name: lol-champions
+version: 1.0.0
+
+dependencies:
+  - name: basic-postgresql-app
+    version: 1.0.0
+    repository: https://clbartolome.github.io/helm-charts
