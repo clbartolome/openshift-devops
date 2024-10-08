@@ -4,5 +4,5 @@ version: 1.0.0
 
 dependencies:
   - name: basic-postgresql-app
-    version: 1.0.0
+    version: 1.0.1
     repository: https://clbartolome.github.io/helm-charts
