@@ -1,0 +1,103 @@
+---
+- name: Demo Installation
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - community.general
+
+  tasks:
+    - name: Setup kubeconfig file
+      include_role:
+        name: kubeconfig
+    
+    - name: Create Demo namespaces
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: project.openshift.io/v1
+          kind: Project
+          metadata:
+            name: "{{ namespace.name }}"
+      loop: "{{ demoNamespaces }}"
+      loop_control:
+        loop_var: namespace
+
+    - name: Give Image puller permission
+      ansible.builtin.command:
+        cmd: oc policy add-role-to-user system:image-puller system:serviceaccount:{{ namespace.name }}:default -n {{ imagesSource.namespace }}
+      loop: "{{ demoNamespaces }}"
+      loop_control:
+        loop_var: namespace
+      when: (imagesSource.enabled|bool == true) and (namespace.type == 'application')
+
+    - name: Assign GitOps cluster-admin role to ArgoCD
+      ansible.builtin.command: >
+        oc adm policy add-cluster-role-to-user cluster-admin 
+        system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller
+        -n openshift-gitops
+
+    - name: Create applications configuration secret
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: "{{ app_name }}-config"
+            namespace: "{{ namespace.name }}"
+          data:
+            POSTGRESQL_USER: "bG9sLXVzZXI="
+            POSTGRESQL_PASSWORD: "Y2g0bXAxMG41"
+            POSTGRESQL_DATABASE: "bG9sLWNoYW1waW9ucy1kYg=="
+            DB_USER: "bG9sLXVzZXI="
+            DB_PASS: "Y2g0bXAxMG41"
+            DB_HOST: "bG9sLWNoYW1waW9ucy1kYg=="
+            DB_NAME: "bG9sLWNoYW1waW9ucy1kYg=="
+            DB_PORT: NTQzMg==
+      loop: "{{ demoNamespaces }}"
+      loop_control:
+        loop_var: namespace
+      when: namespace.type == 'application'
+
+    - name: Deploy Environment via GitOps
+      kubernetes.core.k8s:
+        state: present
+        src: "environment.yaml"
+
+    - name: Get argoCD admin password
+      ansible.builtin.command:
+        cmd: oc get secret openshift-gitops-cluster -n openshift-gitops -ojsonpath='{.data.admin\.password}'
+      register: argoPass
+
+    - name: Create cicd configuration secret
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: ci-cd-config
+            namespace: ci-cd-workspace
+          data:
+            ARGOCD_SERVER: "{{ 'openshift-gitops-server.openshift-gitops.svc.cluster.local' | b64encode }}"
+            ARGOCD_USERNAME: "{{ 'admin' | b64encode }}"
+            ARGOCD_PASSWORD: "{{ argoPass.stdout }}"
+            GITEA_USER: "{{ 'gitea' | b64encode }}"
+            GITEA_PASS: "{{ 'openshift' | b64encode }}"
+            GITEA_HOST: "{{ 'http://gitea.gitea.svc.cluster.local:3000' | b64encode }}"
+
+    - name: Demo Environment Details
+      ansible.builtin.debug:
+        msg:
+        - "--------------------------------------------------------------------------"
+        - "Gitea URL: http://gitea-gitea.apps.{{ ocp_host }}"
+        - "Gitea Credentials: gitea / openshift"
+        - "--------------------------------------------------------------------------"
+        - "OpenShift GitOps URL: https://openshift-gitops-server-openshift-gitops.apps.{{ ocp_host }}"
+        - "OpenShift GitOps Credentials: admin / {{ argoPass.stdout | b64decode  }}"
+        - "--------------------------------------------------------------------------"
+        - "Note: wait until demo-environment application is synced in ArgoCD"
+        - "--------------------------------------------------------------------------"
+  
+  vars_files:
+    - vars.yaml

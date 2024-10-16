@@ -1,6 +1,0 @@
----
-- name: Install operators
-  include_tasks: install_operator.yaml
-  loop: "{{ operators }}"
-  loop_control:
-    loop_var: operator

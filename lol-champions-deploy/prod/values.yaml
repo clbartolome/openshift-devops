@@ -1,0 +1,14 @@
+basic-postgresql-app:
+
+  name: lol-champions
+  environment: prod
+
+  replicas: 3
+
+  image:
+    url: quay.io/calopezb/lol-champions
+    version: 1.0.0
+
+  network:
+    port: 8080
+    routeEnabled: true

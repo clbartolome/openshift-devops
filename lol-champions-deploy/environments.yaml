@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: lol-champions-environment
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  generators:
+    - list:
+        elements:
+        - environment: "dev"
+          branch: master
+        - environment: "stage"
+          branch: master
+        - environment: "prod"
+          branch: master
+  template:
+    metadata:
+      name: 'lol-champions-{{ environment }}'
+    spec:
+      project: default
+      source:
+        repoURL: http://gitea.gitea.svc.cluster.local:3000/gitea/lol-champions-deploy
+        targetRevision: '{{ branch }}'
+        path: '{{ environment }}'
+        helm:
+          valueFiles:
+            - values.yaml
+      destination:
+        server: 'https://kubernetes.default.svc'
+        namespace: 'lol-champions-{{ environment }}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

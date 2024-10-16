@@ -1,50 +1,39 @@
 # openshift-devops
 Repository with an application lifecycle overview
 
+
+> [!IMPORTANT]  
+> Last working versions: 
+> - OpenShift: 4.16.13
+> - OpenShift GitOps: 1.14.0
+> - OpenShift Pipelines: 1.15.1 
+
 ## Install
 
-Configure installation playbook if needed (`installation/vars.yaml`):
+### Pre-requisites
+- OpenShift GitOps Operator installed with default configuration
+- OpenShift Pipelines Operator installed with default configuration
 
-```yaml
-demoNamespaces:
-  # Exclude operators installation namespaces
-  - name: test
-  ...
 
-imagesSource:
-  # Configure if you need namespaces to pull images from an specific one
-  enabled: true
-  namespace: <namespace>
-
-operators:
-  - name: <operator name>
-    namespace: <operator namespace>
-    channel: <operator channel>
-    source: <operator source>
-    sourcenamespace: <operator source namespace>
-    clusterwide: <true/false>
-  ...
-```
-
-Login in an OpenShift cluster and run (from installation/ansible-navigator folder):
-
+### Deployment
+- Open a terminal
+- Access installation->ansible-navigator: `cd installation/ansible-navigator`
+- Run installation:
 ```sh
-ansible-navigator run ../install_demo.yaml -m stdout \
-  -e "ocp_host=<** e.g.: server.domain.com **>" \
-  -e "api_token=<** e.g.: sha256~..... **>"
+ansible-navigator run ../install.yaml -m stdout \
+    -e "ocp_host=<** e.g.: server.domain.com **>" \
+    -e "api_token=<** e.g.: sha256~..... **>"
 ```
+- Review installed resources in final playbook message
 
-## Uninstall
+### Uninstall
 
-Use same configuration as in Installation.
-
-IMPORTANT: Operators will not be uninstalled
-
-Login in an OpenShift cluster and run (from installation/ansible-navigator folder):
-
+- Open a terminal
+- Access installation->ansible-navigator: `cd installation/ansible-navigator`
+- Run uninstallation: 
 ```sh
-ansible-navigator run ../uninstall_demo.yaml -m stdout \
-  -e "ocp_host=<** e.g.: server.domain.com **>" \
-  -e "api_token=<** e.g.: sha256~..... **>"
+ansible-navigator run ../uninstall.yaml -m stdout \
+    -e "ocp_host=<** e.g.: server.domain.com **>" \
+    -e "api_token=<** e.g.: sha256~..... **>"
 ```
 
