@@ -30,7 +30,7 @@ spec:
           cd repository
 
           echo "-- Cloning demo repository --"
-          git clone -b feature/installation-refactor https://github.com/clbartolome/openshift-devops.git  
+          git clone -b master https://github.com/clbartolome/openshift-devops.git  
           echo "------------------------------"   
 
           echo "-- Creating gitea user"
