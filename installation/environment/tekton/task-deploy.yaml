@@ -68,6 +68,6 @@ spec:
     - name: sync-argo
       image: quay.io/argoproj/argocd:latest
       script: |
-        argocd login "$ARGOCD_SERVER" --username="$ARGOCD_USERNAME" --password="$ARGOCD_PASSWORD"  --insecure
-        argocd app sync $(params.APP_NAME)-$(params.ENV) --insecure --timeout 300
-        argocd app wait $(params.APP_NAME)-$(params.ENV) --health --insecure --timeout 300
+        argocd login "$ARGOCD_SERVER" --username="$ARGOCD_USERNAME" --password="$ARGOCD_PASSWORD" --skip-test-tls  --insecure
+        argocd app sync $(params.APP_NAME)-$(params.ENV) --insecure
+        argocd app wait $(params.APP_NAME)-$(params.ENV) --health --insecure
