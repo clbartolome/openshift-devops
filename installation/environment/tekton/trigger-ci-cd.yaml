@@ -61,7 +61,7 @@ spec:
     spec:
       params:
           - name: APP_NAME
-            value: lol-champions-app
+            value: lol-champions
           - name: APP_REPO
             value: 'http://gitea.gitea.svc.cluster.local:3000/gitea/lol-champions-app'
           - name: DEPLOY_REPO
