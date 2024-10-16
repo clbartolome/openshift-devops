@@ -6,7 +6,7 @@ basic-postgresql-app:
   replicas: 1
 
   image:
-    url: quay.io/calopezb/wrong-image
+    url: quay.io/calopezb/lol-champions
     version: 1.0.0
 
   network:
