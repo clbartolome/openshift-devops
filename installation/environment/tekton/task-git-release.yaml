@@ -61,7 +61,7 @@ spec:
           -u $GITEA_USER:$GITEA_PASS \
           -d @$(workspaces.source.path)/pr.json \
           -H "Content-Type: application/json" \
-          $GITEA_HOST/api/v1/repos/$GITEA_USER/$(params.APP_NAME)/releases)
+          $GITEA_HOST/api/v1/repos/$GITEA_USER/$(params.APP_NAME)-app/releases)
       
         if [ "$RESPONSE" != "201" ]; then
             echo "Error creating RELEASE, error code: $RESPONSE"

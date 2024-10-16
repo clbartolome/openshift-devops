@@ -18,6 +18,14 @@ spec:
             - name: eventTypes
               value:
                 - push
+        - params:	
+            - name: filter	
+              value: body.ref.startsWith('refs/heads/')	
+            - name: overlays	
+              value: null	
+          ref:	
+            kind: ClusterInterceptor	
+            name: cel
       bindings:
         - kind: TriggerBinding
           ref: ci-cd
