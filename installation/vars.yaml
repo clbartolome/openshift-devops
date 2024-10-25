@@ -2,6 +2,10 @@
 demoNamespaces:
   - name: gitea
     type: management
+  - name: tekton-review
+    type: application
+  - name: argo-review
+    type: application
   - name: ci-cd-workspace
     type: management
   - name: lol-champions-dev

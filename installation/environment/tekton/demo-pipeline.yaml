@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: demo-pipeline
+  namespace: tekton-review
+  annotations:
+    argocd.argoproj.io/sync-wave: "48"
+spec:
+  params:
+    - name: MESSAGE
+  tasks:
+    - name: task-1
+      taskRef:
+        kind: Task
+        name: demo-task
+      params:
+        - name: MESSAGE
+          value: $(params.MESSAGE)
+    - name: task-2
+      runAfter:
+        - task-1
+      taskRef:
+        kind: Task
+        name: demo-task
+      params:
+        - name: MESSAGE
+          value: "$(tasks.task-1.results.MESSAGE_DATE)"

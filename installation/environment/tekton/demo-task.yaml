@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: demo-task
+  namespace: tekton-review
+  annotations:
+    argocd.argoproj.io/sync-wave: "48"
+spec:
+  params:
+    - name: MESSAGE
+  results:
+    - name: MESSAGE_DATE
+  steps:
+    - name: print-message
+      image: registry.access.redhat.com/ubi8/ubi-minimal:8.3
+      script: |
+        echo "$(params.MESSAGE)"
+    - name: get-date
+      image: registry.access.redhat.com/ubi8/ubi-minimal:8.3
+      script: |
+        DATE="$(date)"
+        echo $DATE
+        echo $DATE > "$(results.MESSAGE_DATE.path)"

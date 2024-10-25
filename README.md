@@ -15,25 +15,32 @@ Repository with an application lifecycle overview
 - OpenShift Pipelines Operator installed with default configuration
 
 
-### Deployment
+### Deploy
+
 - Open a terminal
+- Login into OpenShift
 - Access installation->ansible-navigator: `cd installation/ansible-navigator`
 - Run installation:
 ```sh
+OPENSHIFT_TOKEN=$(oc whoami --show-token)
+CLUSTER_DOMAIN=$(oc whoami --show-server | sed 's~https://api\.~~' | sed 's~:.*~~')
 ansible-navigator run ../install.yaml -m stdout \
-    -e "ocp_host=<** e.g.: server.domain.com **>" \
-    -e "api_token=<** e.g.: sha256~..... **>"
+    -e "ocp_host=$CLUSTER_DOMAIN" \
+    -e "api_token=$OPENSHIFT_TOKEN"
 ```
 - Review installed resources in final playbook message
 
 ### Uninstall
 
 - Open a terminal
+- Login into OpenShift
 - Access installation->ansible-navigator: `cd installation/ansible-navigator`
 - Run uninstallation: 
 ```sh
+OPENSHIFT_TOKEN=$(oc whoami --show-token)
+CLUSTER_DOMAIN=$(oc whoami --show-server | sed 's~https://api\.~~' | sed 's~:.*~~')
 ansible-navigator run ../uninstall.yaml -m stdout \
-    -e "ocp_host=<** e.g.: server.domain.com **>" \
-    -e "api_token=<** e.g.: sha256~..... **>"
+    -e "ocp_host=$CLUSTER_DOMAIN" \
+    -e "api_token=$OPENSHIFT_TOKEN"
 ```
 
