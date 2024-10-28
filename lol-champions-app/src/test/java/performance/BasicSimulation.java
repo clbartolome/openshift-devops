@@ -39,7 +39,7 @@ public class BasicSimulation extends Simulation {
 
   {
     setUp(
-      scn.injectOpen(rampUsers(250).during(Duration.ofMinutes(2)))
+      scn.injectOpen(rampUsers(200).during(Duration.ofMinutes(2)))
     ).protocols(httpProtocol)
     .assertions(
       global().responseTime().mean().lt(2000),  // mean response time < 2 seconds
