@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/clbartolome/openshift-devops.git
-    targetRevision: master
+    targetRevision: feature/install_4_18
     path: installation/environment/
     directory:
       recurse: true
