@@ -53,13 +53,13 @@ spec:
     # ------------ FETCH REPOSITORIES ------------ #
     - name: fetch-app-repository
       params:
-        - name: url
+        - name: URL
           value: $(params.APP_REPO)
-        - name: revision
+        - name: REVISION
           value: $(params.APP_REVISION)
-        - name: subdirectory
+        - name: SUBDIRECTORY
           value: app-repo
-        - name: deleteExisting
+        - name: DELETE_EXISTING
           value: 'true'
       taskRef:
         resolver: cluster
@@ -75,13 +75,13 @@ spec:
           workspace: workspace
     - name: fetch-deploy-repository
       params:
-        - name: url
+        - name: URL
           value: $(params.DEPLOY_REPO)
-        - name: revision
+        - name: REVISION
           value: $(params.DEPLOY_REVISION)
-        - name: subdirectory
+        - name: SUBDIRECTORY
           value: deploy-repo
-        - name: deleteExisting
+        - name: DELETE_EXISTING
           value: 'true'
       taskRef:
         resolver: cluster
