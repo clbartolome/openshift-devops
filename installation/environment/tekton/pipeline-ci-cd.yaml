@@ -49,7 +49,6 @@ spec:
         - name: PIPELINERUN_UID
           value: $(context.pipelineRun.name)
       taskRef:
-        kind: Task
         name: pipelinerun-url
     # ------------ FETCH REPOSITORIES ------------ #
     - name: fetch-app-repository
@@ -63,8 +62,14 @@ spec:
         - name: deleteExisting
           value: 'true'
       taskRef:
-        kind: ClusterTask
-        name: git-clone
+        resolver: cluster
+        params:
+        - name: kind
+          value: task
+        - name: name
+          value: git-clone
+        - name: namespace
+          value: openshift-pipelines
       workspaces:
         - name: output
           workspace: workspace
@@ -79,8 +84,14 @@ spec:
         - name: deleteExisting
           value: 'true'
       taskRef:
-        kind: ClusterTask
-        name: git-clone
+        resolver: cluster
+        params:
+        - name: kind
+          value: task
+        - name: name
+          value: git-clone
+        - name: namespace
+          value: openshift-pipelines
       workspaces:
         - name: output
           workspace: workspace
@@ -91,7 +102,6 @@ spec:
         - fetch-app-repository
         - fetch-deploy-repository
       taskRef:
-        kind: Task
         name: run-maven
       params:
         - name: PATH_CONTEXT
@@ -105,7 +115,6 @@ spec:
       runAfter:
         - unit-tests
       taskRef:
-        kind: Task
         name: coverage
       params:
         - name: PATH_CONTEXT
@@ -120,7 +129,6 @@ spec:
         - fetch-app-repository
         - fetch-deploy-repository
       taskRef:
-        kind: Task
         name: run-maven
       params:
         - name: PATH_CONTEXT
@@ -137,7 +145,6 @@ spec:
         - fetch-app-repository
         - fetch-deploy-repository
       taskRef:
-        kind: Task
         name: run-maven
       params:
         - name: PATH_CONTEXT
@@ -154,7 +161,6 @@ spec:
         - fetch-app-repository
         - fetch-deploy-repository
       taskRef:
-        kind: Task
         name: run-maven
       params:
         - name: PATH_CONTEXT
@@ -182,7 +188,6 @@ spec:
         - name: VERSION
           value: $(params.BUILD_VERSION)
       taskRef:
-        kind: Task
         name: s2i
       workspaces:
         - name: source
@@ -195,7 +200,6 @@ spec:
         - code-linting
         - spotbugs-check
       taskRef:
-        kind: Task
         name: generate-version
       params:
         - name: PATH_CONTEXT
@@ -209,7 +213,6 @@ spec:
         - generate-version
         - build-image
       taskRef:
-        kind: Task
         name: tag-image
       params:
         - name: IMAGE
@@ -223,7 +226,6 @@ spec:
       runAfter:
         - tag-image-dev
       taskRef:
-        kind: Task
         name: deploy
       params:
         - name: APP_NAME
@@ -250,7 +252,6 @@ spec:
       runAfter:
         - deploy-dev
       taskRef:
-        kind: Task
         name: tag-image
       params:
         - name: IMAGE
@@ -264,7 +265,6 @@ spec:
       runAfter:
         - tag-release-candidate
       taskRef:
-        kind: Task
         name: deploy
       params:
         - name: APP_NAME
@@ -291,7 +291,6 @@ spec:
       runAfter:
         - deploy-stage
       taskRef:
-        kind: Task
         name: run-maven
       params:
         - name: PATH_CONTEXT
@@ -306,7 +305,6 @@ spec:
       runAfter:
         - performance-tests
       taskRef:
-        kind: Task
         name: git-release
       params:
         - name: APP_NAME
@@ -328,7 +326,6 @@ spec:
       runAfter:
         - performance-tests
       taskRef:
-        kind: Task
         name: tag-image
       params:
         - name: IMAGE
@@ -343,7 +340,6 @@ spec:
         - git-release
         - tag-release
       taskRef:
-        kind: Task
         name: deploy-pr
       params:
         - name: APP_NAME
