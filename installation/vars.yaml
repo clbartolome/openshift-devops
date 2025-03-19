@@ -14,8 +14,6 @@ demoNamespaces:
     type: application
   - name: lol-champions-prod
     type: application
-  - name: sealed-secrets
-    type: management
 
 argo_user: admin
 
