@@ -4,9 +4,9 @@ Repository with an application lifecycle overview
 
 > [!IMPORTANT]  
 > Last working versions: 
-> - OpenShift: 4.16.13
-> - OpenShift GitOps: 1.14.0
-> - OpenShift Pipelines: 1.15.1 
+> - OpenShift: 4.18.4
+> - OpenShift GitOps: 1.15.1
+> - OpenShift Pipelines: 1.17.1 
 
 ## Install
 
